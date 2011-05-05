@@ -42,7 +42,7 @@ public class MountCommand implements Command {
                 arguments = previousValue;
             } else {
                 String[] hostAndPort = arguments.split(":");
-                props.put(hostAndPort[0], arguments);
+                props.setProperty(hostAndPort[0], arguments);
                 props.store(new FileOutputStream("hosts.properties"), "Hosts for Gash.");
             }
         } catch (IOException e) {

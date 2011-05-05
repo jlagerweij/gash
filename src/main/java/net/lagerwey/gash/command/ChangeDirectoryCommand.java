@@ -1,10 +1,8 @@
 package net.lagerwey.gash.command;
 
-import com.j_spaces.core.IJSpace;
 import com.j_spaces.jdbc.driver.GConnection;
 import net.lagerwey.gash.Utils;
 import org.openspaces.admin.Admin;
-import org.openspaces.admin.space.Space;
 import org.openspaces.admin.space.SpacePartition;
 import org.springframework.util.StringUtils;
 
@@ -39,7 +37,8 @@ public class ChangeDirectoryCommand implements Command {
 
     /**
      * Changes to a 'directory'.
-     * @param admin GigaSpaces Admin object.
+     *
+     * @param admin     GigaSpaces Admin object.
      * @param arguments Arguments to change a directory.
      */
     public void changeDirectory(Admin admin, String arguments) {
@@ -102,6 +101,7 @@ public class ChangeDirectoryCommand implements Command {
 
     /**
      * Creates a Map of short space names and its long one.
+     *
      * @param admin GigaSpaces Admin object.
      * @return Map for short space names to the long space name.
      */
@@ -116,6 +116,7 @@ public class ChangeDirectoryCommand implements Command {
 
     /**
      * Creates a Map of short objecttypes and the long one.
+     *
      * @param admin GigaSpaces Admin object.
      * @return Map for short objecttypes to the long objecttypes.
      */
@@ -125,9 +126,8 @@ public class ChangeDirectoryCommand implements Command {
             SpacePartition partition = admin.getSpaces().getSpaceByName(spaceName)
                     .getPartition(Integer.parseInt(
                             partitionId));
-            Space spaceInstance = partition.getPrimary().getSpace();
-            IJSpace ijSpace = spaceInstance.getGigaSpace().getSpace();
-            GConnection conn = GConnection.getInstance(ijSpace);
+            GConnection conn = GConnection.getInstance(partition.getPrimary().getGigaSpace()
+                                                               .getSpace());
             Statement shortSt = conn.createStatement();
             ResultSet shortRs = shortSt.executeQuery("SELECT * FROM SYSTABLES");
             while (shortRs.next()) {

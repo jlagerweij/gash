@@ -10,6 +10,7 @@ import org.openspaces.admin.space.SpacePartition;
 import org.springframework.util.StringUtils;
 
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 
 import static net.lagerwey.gash.Utils.sortProcessingUnits;
@@ -110,44 +111,31 @@ public class ListCommand implements Command {
         } else {
             query = "SELECT * FROM SYSTABLES";
         }
-        SpacePartition partition = admin.getSpaces().getSpaceByName(directoryCmd.getSpaceName())
-                .getPartition(
-                        Integer.parseInt(directoryCmd.getPartitionId()));
-        int objects = 0;
+        int objects = executeQuery(admin, query);
+
+        if (StringUtils.hasText(directoryCmd.getObjectType())) {
+            Utils.info("%s objects.", objects);
+        } else {
+            Utils.info("%s classes.", objects);
+        }
+    }
+
+    /**
+     * Executes a query.
+     * @param admin GigaSpaces Admin object.
+     * @param query Query to execute.
+     * @return Number of rows as the result of the query.
+     */
+    private int executeQuery(Admin admin, String query) {
+        int nrOfObjects = 0;
         try {
-            GConnection conn = GConnection.getInstance(partition.getPrimary().getGigaSpace()
-                                                               .getSpace());
+            final Space spaceByName = admin.getSpaces().getSpaceByName(directoryCmd.getSpaceName());
+            SpacePartition partition = spaceByName.getPartition(Integer.parseInt(directoryCmd.getPartitionId()));
+            GConnection conn = GConnection.getInstance(partition.getPrimary().getGigaSpace().getSpace());
             conn.setUseSingleSpace(true);
             Statement st = conn.createStatement();
             ResultSet rs = st.executeQuery(query);
-            StringBuilder sb = new StringBuilder();
-            for (int i = 1; i <= rs.getMetaData().getColumnCount(); i++) {
-                String columnName = rs.getMetaData().getColumnName(i);
-                sb.append(columnName.substring(columnName.lastIndexOf(".") + 1));
-                sb.append("\t");
-            }
-            Utils.info("%s", "__________________________________________________________________________________");
-            Utils.info("%s", sb.toString());
-            Utils.info("%s", "----------------------------------------------------------------------------------");
-
-            while (rs.next()) {
-                objects++;
-                sb.setLength(0);
-                for (int i = 1; i <= rs.getMetaData().getColumnCount(); i++) {
-                    sb.append(rs.getString(i));
-                    sb.append("\t");
-                }
-                if (!StringUtils.hasText(directoryCmd.getObjectType())) {
-                    Statement countSt = conn.createStatement();
-                    ResultSet countRs = countSt.executeQuery("SELECT COUNT(*) FROM " + sb.toString().trim());
-                    while (countRs.next()) {
-                        sb.append(countRs.getString(1));
-                    }
-                    countRs.close();
-                    countSt.close();
-                }
-                Utils.info("%s", sb.toString());
-            }
+            nrOfObjects = prettyPrintResultSet(conn, rs);
             rs.close();
             st.close();
             conn.close();
@@ -158,12 +146,40 @@ public class ListCommand implements Command {
                 Utils.info("ERROR: %s", e.getMessage());
             }
         }
+        return nrOfObjects;
+    }
 
-        if (StringUtils.hasText(directoryCmd.getObjectType())) {
-            Utils.info("%s objects.", objects);
-        } else {
-            Utils.info("%s classes.", objects);
+    private int prettyPrintResultSet(GConnection conn, ResultSet rs) throws SQLException {
+        int nrOfObjects = 0;
+        StringBuilder sb = new StringBuilder();
+        for (int i = 1; i <= rs.getMetaData().getColumnCount(); i++) {
+            String columnName = rs.getMetaData().getColumnName(i);
+            sb.append(columnName.substring(columnName.lastIndexOf(".") + 1));
+            sb.append("\t");
         }
+        Utils.info("%s", "__________________________________________________________________________________");
+        Utils.info("%s", sb.toString());
+        Utils.info("%s", "----------------------------------------------------------------------------------");
+
+        while (rs.next()) {
+            nrOfObjects++;
+            sb.setLength(0);
+            for (int i = 1; i <= rs.getMetaData().getColumnCount(); i++) {
+                sb.append(rs.getString(i));
+                sb.append("\t");
+            }
+            if (!StringUtils.hasText(directoryCmd.getObjectType())) {
+                Statement countSt = conn.createStatement();
+                ResultSet countRs = countSt.executeQuery("SELECT COUNT(*) FROM " + sb.toString().trim());
+                while (countRs.next()) {
+                    sb.append(countRs.getString(1));
+                }
+                countRs.close();
+                countSt.close();
+            }
+            Utils.info("%s", sb.toString());
+        }
+        return nrOfObjects;
     }
 
     @Override
