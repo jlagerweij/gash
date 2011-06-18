@@ -22,11 +22,39 @@
         <url>http://code.google.com/p/gash/issues/list</url>
     </issueManagement>
 
+    <repositories>
+        <repository>
+            <id>project</id>
+            <name>Project Repository</name>
+            <url>file:///${basedir}/lib</url>
+            <layout>default</layout>
+        </repository>
+    </repositories>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.gigaspaces</groupId>
+                <artifactId>gs-openspaces</artifactId>
+                <version>8.0.2</version>
+            </dependency>
+            <dependency>
+                <groupId>jline</groupId>
+                <artifactId>jline</artifactId>
+                <version>0.9.94</version>
+            </dependency>
+            <dependency>
+                <groupId>com.simontuffs</groupId>
+                <artifactId>one-jar-boot</artifactId>
+                <version>0.97</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <dependencies>
         <dependency>
             <groupId>com.gigaspaces</groupId>
             <artifactId>gs-openspaces</artifactId>
-            <version>8.0.1</version>
             <exclusions>
                 <!-- One-jar gives warning messages if this is included, plus, it saves a few MB on jar size -->
                 <exclusion>
@@ -39,12 +67,10 @@
         <dependency>
             <groupId>jline</groupId>
             <artifactId>jline</artifactId>
-            <version>0.9.94</version>
         </dependency>
         <dependency>
             <groupId>com.simontuffs</groupId>
             <artifactId>one-jar-boot</artifactId>
-            <version>0.97</version>
         </dependency>
     </dependencies>
 

@@ -33,14 +33,28 @@ public class SpacesCommand implements Command {
                 }
             });
             for (GridServiceContainer container : containers) {
+                String zones = null;
+                for (String zoneName : container.getZones().keySet()) {
+                    if (zones == null) {
+                        zones = zoneName;
+                    } else {
+                        zones += ", " + zoneName;
+                    }
+                }
+                if (zones == null) {
+                    zones = "";
+                } else {
+                    zones = "Zones [" + zones + "]";
+                }
                 int i = container.getAgentId();
                 if (showAll) {
-                    Utils.info("- GSC-%s [pid %s] uid[%s]",
+                    Utils.info("- GSC-%s [pid %s] uid[%s] %s",
                                i,
                                container.getVirtualMachine().getDetails().getPid(),
-                               container.getUid());
+                               container.getUid(),
+                               zones);
                 } else {
-                    Utils.info("- GSC-%s [pid %s]", i, container.getVirtualMachine().getDetails().getPid());
+                    Utils.info("- GSC-%s [pid %s] %s", i, container.getVirtualMachine().getDetails().getPid(), zones);
                 }
 
                 ProcessingUnitInstance[] processingUnitInstances = container.getProcessingUnitInstances();

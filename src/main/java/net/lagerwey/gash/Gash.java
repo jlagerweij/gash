@@ -5,10 +5,10 @@ import jline.SimpleCompletor;
 import net.lagerwey.gash.command.ChangeDirectoryCommand;
 import net.lagerwey.gash.command.CloseCommand;
 import net.lagerwey.gash.command.Command;
-import net.lagerwey.gash.command.MountCommand;
 import net.lagerwey.gash.command.ExitCommand;
 import net.lagerwey.gash.command.HelpCommand;
 import net.lagerwey.gash.command.ListCommand;
+import net.lagerwey.gash.command.MountCommand;
 import net.lagerwey.gash.command.SelectCommand;
 import net.lagerwey.gash.command.ServicesCommand;
 import net.lagerwey.gash.command.SetCommand;
@@ -17,11 +17,8 @@ import net.lagerwey.gash.command.TopCommand;
 import net.lagerwey.gash.command.TreeCommand;
 import net.lagerwey.gash.command.UnitCommand;
 import org.openspaces.admin.Admin;
-import org.springframework.util.StringUtils;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.PrintStream;
 import java.util.HashMap;
 
 /**
@@ -32,8 +29,8 @@ public class Gash {
     private String lookupgroups = null;
     private String lookuplocators = lookupgroups;
     static boolean exitApplication;
-    private ChangeDirectoryCommand directoryCmd;
     private HashMap<String, Command> commands;
+    private CurrentWorkingSpace currentWorkingSpace;
 
     public static void main(String[] args) {
         System.setProperty("com.gigaspaces.exceptions.level", "SEVERE");
@@ -65,15 +62,15 @@ public class Gash {
     }
 
     private void start() {
+        currentWorkingSpace = new CurrentWorkingSpace();
         commands = new HashMap<String, Command>();
-        directoryCmd = new ChangeDirectoryCommand();
-        commands.put("cd", directoryCmd);
+        commands.put("cd", new ChangeDirectoryCommand(currentWorkingSpace));
         commands.put("close", new CloseCommand(this));
         commands.put("exit", new ExitCommand(this));
         commands.put("help", new HelpCommand(this));
-        commands.put("ls", new ListCommand(directoryCmd));
+        commands.put("ls", new ListCommand(currentWorkingSpace));
         commands.put("mount", new MountCommand(this));
-        commands.put("select", new SelectCommand(directoryCmd));
+        commands.put("select", new SelectCommand(currentWorkingSpace));
         commands.put("set", new SetCommand());
         commands.put("spaces", new SpacesCommand());
         commands.put("top", new TopCommand());
@@ -179,9 +176,13 @@ public class Gash {
     }
 
     private String determinePrompt(Object locator) {
+        String s = currentWorkingSpace.locationAsString();
+        return String.format("%s:%s$ ", locator, s);
+        /*
         // Print the prompt
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
         PrintStream out = new PrintStream(stream);
+        String locationAsString = directoryCmd.locationAsString();
         if (StringUtils.hasText(directoryCmd.getSpaceName())) {
             if (StringUtils.hasText(directoryCmd.getPartitionId())) {
                 if (StringUtils.hasText(directoryCmd.getObjectType())) {
@@ -204,11 +205,12 @@ public class Gash {
         }
         out.close();
         return stream.toString();
+        */
     }
 
     public void disconnect() {
         if (isConnected()) {
-            directoryCmd.clear();
+            currentWorkingSpace.clear();
             Utils.info("Disconnecting from groups [%s] and locators [%s].", lookupgroups, lookuplocators);
             admin.close();
             admin = null;
