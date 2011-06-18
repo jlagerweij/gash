@@ -5,7 +5,7 @@
     <name>GigaSpaces Advanced Shell</name>
     <groupId>net.lagerwey</groupId>
     <artifactId>gash</artifactId>
-    <version>1.1-SNAPSHOT</version>
+    <version>1.1</version>
     <description>GigaSpaces Advanced Shell</description>
 
     <properties>
@@ -13,8 +13,8 @@
     </properties>
 
     <scm>
-        <connection>scm:svn:http://gash.googlecode.com/svn/trunk</connection>
-        <developerConnection>scm:svn:https://gash.googlecode.com/svn/tags/</developerConnection>
+        <connection>scm:svn:http://gash.googlecode.com/svn/tags/gash-1.1</connection>
+        <developerConnection>scm:svn:https://gash.googlecode.com/svn/tags/gash-1.1</developerConnection>
     </scm>
 
     <issueManagement>
