@@ -5,10 +5,11 @@ import jline.SimpleCompletor;
 import net.lagerwey.gash.command.ChangeDirectoryCommand;
 import net.lagerwey.gash.command.CloseCommand;
 import net.lagerwey.gash.command.Command;
-import net.lagerwey.gash.command.MountCommand;
 import net.lagerwey.gash.command.ExitCommand;
 import net.lagerwey.gash.command.HelpCommand;
 import net.lagerwey.gash.command.ListCommand;
+import net.lagerwey.gash.command.MountCommand;
+import net.lagerwey.gash.command.SQLCommand;
 import net.lagerwey.gash.command.SelectCommand;
 import net.lagerwey.gash.command.ServicesCommand;
 import net.lagerwey.gash.command.SetCommand;
@@ -17,11 +18,8 @@ import net.lagerwey.gash.command.TopCommand;
 import net.lagerwey.gash.command.TreeCommand;
 import net.lagerwey.gash.command.UnitCommand;
 import org.openspaces.admin.Admin;
-import org.springframework.util.StringUtils;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.PrintStream;
 import java.util.HashMap;
 
 /**
@@ -32,8 +30,8 @@ public class Gash {
     private String lookupgroups = null;
     private String lookuplocators = lookupgroups;
     static boolean exitApplication;
-    private ChangeDirectoryCommand directoryCmd;
     private HashMap<String, Command> commands;
+    private CurrentWorkingSpace currentWorkingSpace;
 
     public static void main(String[] args) {
         System.setProperty("com.gigaspaces.exceptions.level", "SEVERE");
@@ -65,15 +63,17 @@ public class Gash {
     }
 
     private void start() {
+        currentWorkingSpace = new CurrentWorkingSpace();
         commands = new HashMap<String, Command>();
-        directoryCmd = new ChangeDirectoryCommand();
-        commands.put("cd", directoryCmd);
+        commands.put("cd", new ChangeDirectoryCommand(currentWorkingSpace));
         commands.put("close", new CloseCommand(this));
         commands.put("exit", new ExitCommand(this));
+        commands.put("delete", new SQLCommand(currentWorkingSpace));
+        commands.put("insert", new SQLCommand(currentWorkingSpace));
         commands.put("help", new HelpCommand(this));
-        commands.put("ls", new ListCommand(directoryCmd));
+        commands.put("ls", new ListCommand(currentWorkingSpace));
         commands.put("mount", new MountCommand(this));
-        commands.put("select", new SelectCommand(directoryCmd));
+        commands.put("select", new SelectCommand(currentWorkingSpace));
         commands.put("set", new SetCommand());
         commands.put("spaces", new SpacesCommand());
         commands.put("top", new TopCommand());
@@ -94,7 +94,6 @@ public class Gash {
 
             String locator = getConnectionString(this);
 
-//            String cmd = readCommand(locator);
             String cmd = readCommandWithJLine(locator, commands);
 
             String arguments = null;
@@ -145,70 +144,14 @@ public class Gash {
         return null;
     }
 
-    private String readCommand(Object locator) {
-        String prompt = determinePrompt(locator);
-        System.out.print(prompt);
-
-        // Read the command
-        StringBuffer command = new StringBuffer();
-        try {
-//                Terminal.setupTerminal();
-            boolean commandDone = false;
-            while (!commandDone) {
-                int readChar = System.in.read();
-                System.out.print((char) readChar);
-                switch (readChar) {
-                    case 10: // Enter;
-                        commandDone = true;
-                        break;
-                    default: // Other chars
-                        Utils.debug("Adding char %s, %d", (char) readChar, readChar);
-                        command.append((char) readChar);
-                        break;
-                }
-            }
-            Utils.debug("Command %s", command);
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        // Execute command
-        return command.toString();
-    }
-
     private String determinePrompt(Object locator) {
-        // Print the prompt
-        ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        PrintStream out = new PrintStream(stream);
-        if (StringUtils.hasText(directoryCmd.getSpaceName())) {
-            if (StringUtils.hasText(directoryCmd.getPartitionId())) {
-                if (StringUtils.hasText(directoryCmd.getObjectType())) {
-                    out.printf("%s:/%s/%s/%s$ ",
-                               locator,
-                               directoryCmd.getSpaceName(),
-                               directoryCmd.getPartitionId(),
-                               directoryCmd.getObjectType());
-                } else {
-                    out.printf("%s:/%s/%s$ ",
-                               locator,
-                               directoryCmd.getSpaceName(),
-                               directoryCmd.getPartitionId());
-                }
-            } else {
-                out.printf("%s:/%s$ ", locator, directoryCmd.getSpaceName());
-            }
-        } else {
-            out.printf("%s:/$ ", locator);
-        }
-        out.close();
-        return stream.toString();
+        String s = currentWorkingSpace.locationAsString();
+        return String.format("%s:%s$ ", locator, s);
     }
 
     public void disconnect() {
         if (isConnected()) {
-            directoryCmd.clear();
+            currentWorkingSpace.clear();
             Utils.info("Disconnecting from groups [%s] and locators [%s].", lookupgroups, lookuplocators);
             admin.close();
             admin = null;

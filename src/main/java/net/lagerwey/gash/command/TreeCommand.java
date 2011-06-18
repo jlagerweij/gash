@@ -9,6 +9,8 @@ import org.openspaces.core.space.SpaceServiceDetails;
 import org.openspaces.core.space.SpaceType;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -22,6 +24,9 @@ public class TreeCommand implements Command {
         for (GridServiceContainer container : admin.getGridServiceContainers()) {
             for (ProcessingUnitInstance processingUnitInstance : container.getProcessingUnitInstances()) {
                 TreeElement<Space> treeElement = new TreeElement<Space>();
+                if (processingUnitInstance.isJee()) {
+                    treeElement.setKey(processingUnitInstance.getName());
+                }
                 for (SpaceServiceDetails spaceServiceDetails : processingUnitInstance.getSpaceDetails()) {
                     if (spaceServiceDetails.getSpaceType().equals(SpaceType.EMBEDDED)) {
                         // Embedded space
@@ -31,7 +36,9 @@ public class TreeCommand implements Command {
                         treeElement.getChildren().add(new TreeElement<Space>(spaceServiceDetails.getName()));
                     }
                 }
-                tree.add(treeElement);
+                if (!tree.contains(treeElement)) {
+                    tree.add(treeElement);
+                }
             }
         }
 
@@ -39,13 +46,19 @@ public class TreeCommand implements Command {
     }
 
     private void printElements(List<TreeElement<Space>> tree, int i) {
+        Collections.sort(tree, new Comparator<TreeElement<Space>>() {
+            @Override
+            public int compare(TreeElement<Space> o1, TreeElement<Space> o2) {
+                return o1.getKey().compareToIgnoreCase(o2.getKey());
+            }
+        });
         for (TreeElement<Space> spaceTreeElement : tree) {
-            System.out.printf("%-" + i + "s%s\n", " ", spaceTreeElement.getKey());
-            printElements(spaceTreeElement.getChildren(), i+1);
+            System.out.printf("%-" + (i*2) + "s%s\n", " ", spaceTreeElement.getKey());
+            printElements(spaceTreeElement.getChildren(), i + 1);
         }
     }
 
-    private TreeElement<Space> findSpaceInTree(List<TreeElement<Space>> tree, Space space) {
+    private TreeElement<Space> findTreeElement(List<TreeElement<Space>> tree, Space space) {
         for (TreeElement<Space> spaceTreeElement : tree) {
             if (spaceTreeElement.getKey().equals(space.getName())) {
                 return spaceTreeElement;

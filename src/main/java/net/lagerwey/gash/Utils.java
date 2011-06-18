@@ -34,10 +34,18 @@ public class Utils {
     public static void sortProcessingUnits(ProcessingUnit[] processingUnitsArray) {
         Arrays.sort(processingUnitsArray, new Comparator<ProcessingUnit>() {
             public int compare(ProcessingUnit o1, ProcessingUnit o2) {
-                if (o1.getInstances()[0].isJee() == o2.getInstances()[0].isJee()) {
+                ProcessingUnitInstance[] o1Instances = o1.getInstances();
+                if (o1Instances.length == 0) {
+                    return 0;
+                }
+                ProcessingUnitInstance[] o2Instances = o2.getInstances();
+                if (o2Instances.length == 0) {
+                    return 0;
+                }
+                if (o1Instances[0].isJee() == o2Instances[0].isJee()) {
                     return o1.getName().compareTo(o2.getName());
                 }
-                return Boolean.valueOf(o2.getInstances()[0].isJee()).compareTo(o1.getInstances()[0].isJee());
+                return Boolean.valueOf(o2Instances[0].isJee()).compareTo(o1Instances[0].isJee());
             }
         });
     }
