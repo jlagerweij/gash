@@ -30,6 +30,9 @@ public class Utils {
         }
     }
 
+    public static void warn(String format, Object... args) {
+        System.out.println(format("WARN: " + format, args));
+    }
 
     public static void sortProcessingUnits(ProcessingUnit[] processingUnitsArray) {
         Arrays.sort(processingUnitsArray, new Comparator<ProcessingUnit>() {

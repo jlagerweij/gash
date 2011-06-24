@@ -1,7 +1,7 @@
 package net.lagerwey.gash.command;
 
-import net.lagerwey.gash.Utils;
 import net.lagerwey.gash.Gash;
+import net.lagerwey.gash.Utils;
 import org.openspaces.admin.Admin;
 import org.openspaces.admin.AdminFactory;
 
@@ -34,16 +34,23 @@ public class MountCommand implements Command {
 
         Properties props = new Properties();
         try {
-            if (new File("hosts.properties").exists()) {
-                props.load(new FileInputStream("hosts.properties"));
-            }
-            String previousValue = props.getProperty(arguments);
-            if (previousValue != null) {
-                arguments = previousValue;
+            File gashConfigDir = new File(System.getProperty("user.home"), ".gash");
+            gashConfigDir.mkdirs();
+            if (!gashConfigDir.exists()) {
+                Utils.warn("Could not create gash config directory at %s", gashConfigDir.getAbsolutePath());
             } else {
-                String[] hostAndPort = arguments.split(":");
-                props.setProperty(hostAndPort[0], arguments);
-                props.store(new FileOutputStream("hosts.properties"), "Hosts for Gash.");
+                File gashConfigFile = new File(gashConfigDir, "hosts.properties");
+                if (gashConfigFile.exists()) {
+                    props.load(new FileInputStream(gashConfigFile));
+                }
+                String previousValue = props.getProperty(arguments);
+                if (previousValue != null) {
+                    arguments = previousValue;
+                } else {
+                    String[] hostAndPort = arguments.split(":");
+                    props.setProperty(hostAndPort[0], arguments);
+                    props.store(new FileOutputStream(gashConfigFile), "Hosts for Gash.");
+                }
             }
         } catch (IOException e) {
             e.printStackTrace();
