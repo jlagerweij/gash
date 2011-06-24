@@ -81,13 +81,16 @@ public class SpaceLocation {
                     SpacePartition partition = admin.getSpaces().getSpaceByName(spaceLocation.spaceName)
                             .getPartition(Integer.parseInt(
                                     directory));
-                    spaceLocation.partitionId = "" + partition.getPartitionId();
+                    if (partition == null) {
+                        Utils.error("Partition %s not found.", directory);
+                    } else {
+                        spaceLocation.partitionId = "" + partition.getPartitionId();
+                    }
                 } else {
                     // It's not a partition, so it must be another space.
-//                    spaceLocation = new SpaceLocation();
-//                    locations.add(spaceLocation);
-//                    changeDirectory(admin, directory);
-                    Utils.info("Could not parse partition id '%s'", directory);
+                    spaceLocation = new SpaceLocation();
+                    locations.add(spaceLocation);
+                    changeDirectory(admin, directory);
                 }
             } else if (!spaceLocation.hasObjectType()) {
                 Map<String, String> shortObjectNames = spaceLocation.createShortObjectTypeMap(admin);

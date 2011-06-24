@@ -5,14 +5,21 @@ import net.lagerwey.gash.CurrentWorkingSpace;
 import net.lagerwey.gash.Utils;
 import org.openspaces.admin.Admin;
 import org.openspaces.admin.pu.ProcessingUnit;
+import org.openspaces.admin.pu.ProcessingUnitInstance;
 import org.openspaces.admin.pu.ProcessingUnits;
 import org.openspaces.admin.space.Space;
 import org.openspaces.admin.space.SpacePartition;
+import org.openspaces.core.space.SpaceServiceDetails;
+import org.openspaces.core.space.SpaceType;
 import org.springframework.util.StringUtils;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
 
 import static net.lagerwey.gash.Utils.sortProcessingUnits;
 
@@ -95,14 +102,46 @@ public class ListCommand implements Command {
      */
     private void listPartitions(Admin admin) {
         Space spaceByName = admin.getSpaces().getSpaceByName(currentWorkingSpace.getSpaceName());
-        Utils.info("total %s partitions", spaceByName.getPartitions().length);
-        for (SpacePartition spacePartition : spaceByName.getPartitions()) {
+        SpacePartition[] partitions = spaceByName.getPartitions();
+        Arrays.sort(partitions, new Comparator<SpacePartition>() {
+            @Override
+            public int compare(SpacePartition o1, SpacePartition o2) {
+                return o1.getPartitionId() - o2.getPartitionId();
+            }
+        });
+        Utils.info("total %s partitions", partitions.length);
+        for (SpacePartition spacePartition : partitions) {
             Utils.info("%s", spacePartition.getPartitionId());
         }
 
-//        for (Space space : spaceByName.getSpaces()) {
-//            Utils.info("%s", space.getName());
-//        }
+        List<String> spaces = new ArrayList<String>();
+        for (ProcessingUnit processingUnit : admin.getProcessingUnits()) {
+            for (ProcessingUnitInstance processingUnitInstance : processingUnit.getInstances()) {
+                if (processingUnitInstance.getSpaceInstance() == null) {
+                    continue;
+                }
+                if (processingUnitInstance.getSpaceInstance().getSpace() == null) {
+                    continue;
+                }
+                if (processingUnitInstance.getSpaceInstance().getSpace().getName().equals(spaceByName.getName())) {
+                    for (SpaceServiceDetails spaceServiceDetails : processingUnitInstance.getSpaceDetails()) {
+                        String spaceServiceDetailsName = spaceServiceDetails.getName();
+                        if (spaceServiceDetails.getSpaceType().equals(SpaceType.REMOTE)
+                                || spaceServiceDetails.getSpaceType().equals(SpaceType.LOCAL_CACHE)
+                                || spaceServiceDetails.getSpaceType().equals(SpaceType.LOCAL_VIEW)) {
+                            // Remote space, Local Cache or Local views
+                            if (!spaces.contains(spaceServiceDetailsName) && !spaceByName.getName().equals(
+                                    spaceServiceDetailsName)) {
+                                spaces.add(spaceServiceDetailsName);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        for (String space : spaces) {
+            Utils.info("%s", space);
+        }
     }
 
     /**
