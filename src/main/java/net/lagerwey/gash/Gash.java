@@ -14,6 +14,7 @@ import net.lagerwey.gash.command.SelectCommand;
 import net.lagerwey.gash.command.ServicesCommand;
 import net.lagerwey.gash.command.SetCommand;
 import net.lagerwey.gash.command.SpacesCommand;
+import net.lagerwey.gash.command.TailCommand;
 import net.lagerwey.gash.command.TopCommand;
 import net.lagerwey.gash.command.TreeCommand;
 import net.lagerwey.gash.command.UnitCommand;
@@ -31,7 +32,7 @@ public class Gash {
     private String lookuplocators = lookupgroups;
     static boolean exitApplication;
     private HashMap<String, Command> commands;
-    private CurrentWorkingSpace currentWorkingSpace;
+    private CurrentWorkingLocation currentWorkingLocation;
 
     public static void main(String[] args) {
         System.setProperty("com.gigaspaces.exceptions.level", "SEVERE");
@@ -50,44 +51,29 @@ public class Gash {
         this.admin = admin;
     }
 
-    public String getLookupgroups() {
-        return lookupgroups;
-    }
-
-    public String getLookuplocators() {
-        return lookuplocators;
-    }
-
     public HashMap<String, Command> getCommands() {
         return commands;
     }
 
     private void start() {
-        currentWorkingSpace = new CurrentWorkingSpace();
+        currentWorkingLocation = new CurrentWorkingLocation();
         commands = new HashMap<String, Command>();
-        commands.put("cd", new ChangeDirectoryCommand(currentWorkingSpace));
+        commands.put("cd", new ChangeDirectoryCommand(currentWorkingLocation));
         commands.put("close", new CloseCommand(this));
         commands.put("exit", new ExitCommand(this));
-        commands.put("delete", new SQLCommand(currentWorkingSpace));
-        commands.put("insert", new SQLCommand(currentWorkingSpace));
+        commands.put("delete", new SQLCommand(currentWorkingLocation));
+        commands.put("insert", new SQLCommand(currentWorkingLocation));
         commands.put("help", new HelpCommand(this));
-        commands.put("ls", new ListCommand(currentWorkingSpace));
-        commands.put("mount", new MountCommand(this));
-        commands.put("select", new SelectCommand(currentWorkingSpace));
+        commands.put("ls", new ListCommand(currentWorkingLocation));
+        commands.put("mount", new MountCommand(this, currentWorkingLocation));
+        commands.put("select", new SelectCommand(currentWorkingLocation));
         commands.put("set", new SetCommand());
         commands.put("spaces", new SpacesCommand());
+        commands.put("tail", new TailCommand(currentWorkingLocation));
         commands.put("top", new TopCommand());
         commands.put("units", new UnitCommand());
         commands.put("tree", new TreeCommand());
         commands.put("services", new ServicesCommand());
-
-        // TODO Dashboard with:
-        // TODO CPU Cores and usage
-        // TODO Memory usage
-        // TODO Nr of: Machines, GSA, GSM, GSC, LUS, Web (req/sec), Stateful (op/sec), Stateless, Mirrors
-
-        // TODO Improve Topology overview with CPU and Memory usage
-        // TODO Machine, GSA, GSC, GSM, LUS => CPU, Memory, PID, Zones, Thread count
 
         exitApplication = false;
         while (!exitApplication) {
@@ -99,7 +85,9 @@ public class Gash {
             String arguments = null;
             if (cmd.indexOf(" ") > 0) {
                 arguments = cmd.substring(cmd.indexOf(" ") + 1);
-                cmd = cmd.substring(0, cmd.indexOf(" "));
+                cmd = cmd.substring(0, cmd.indexOf(" ")).toLowerCase();
+            } else {
+                cmd = cmd.toLowerCase();
             }
             if (commands.containsKey(cmd)) {
                 Command commandToPerform = commands.get(cmd);
@@ -145,13 +133,13 @@ public class Gash {
     }
 
     private String determinePrompt(Object locator) {
-        String s = currentWorkingSpace.locationAsString();
+        String s = currentWorkingLocation.locationAsString();
         return String.format("%s:%s$ ", locator, s);
     }
 
     public void disconnect() {
         if (isConnected()) {
-            currentWorkingSpace.clear();
+            currentWorkingLocation.clear();
             Utils.info("Disconnecting from groups [%s] and locators [%s].", lookupgroups, lookuplocators);
             admin.close();
             admin = null;
@@ -160,7 +148,19 @@ public class Gash {
 
     public String getConnectionString(Gash gash) {
         if (gash.isConnected()) {
-            return admin.getLocators()[0].toString();
+            if (admin.getGroups().length > 0) {
+                String lookupgroup = admin.getGroups()[0];
+                if (lookupgroup.endsWith("/")) {
+                    lookupgroup = lookupgroup.substring(0, lookupgroup.length() - 1);
+                }
+                return lookupgroup;
+            } else if (admin.getLocators().length > 0) {
+                String locator = admin.getLocators()[0].toString();
+                if (locator.endsWith("/")) {
+                    locator = locator.substring(0, locator.length() - 1);
+                }
+                return locator;
+            }
         }
         return "*not connected*";
     }
@@ -169,6 +169,18 @@ public class Gash {
         return admin != null;
     }
 
+
+    public String getLookupgroups() {
+        return lookupgroups;
+    }
+
+    public void setLookupgroups(String lookupgroups) {
+        this.lookupgroups = lookupgroups;
+    }
+
+    public String getLookuplocators() {
+        return lookuplocators;
+    }
 
     public void setLookuplocators(String arguments) {
         lookuplocators = arguments;

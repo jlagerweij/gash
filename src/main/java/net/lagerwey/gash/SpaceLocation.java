@@ -13,8 +13,11 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ * A location in the directory structure.
  */
 public class SpaceLocation {
+
+    private CurrentWorkingLocation currentWorkingLocation;
 
     private List<SpaceLocation> locations = new ArrayList<SpaceLocation>();
 
@@ -22,17 +25,16 @@ public class SpaceLocation {
     private String partitionId;
     private String objectType;
 
+    public SpaceLocation(CurrentWorkingLocation currentWorkingLocation) {
+        this.currentWorkingLocation = currentWorkingLocation;
+    }
+
     public void changeTo(Admin admin, String arguments) {
-        String[] directories = arguments.split("/");
-        if (arguments.startsWith("/")) {
-            if (directories.length == 0) {
-                directories = new String[]{"/"};
-            } else {
-                directories[0] = "/";
-            }
-        }
+        String[] directories = arguments.trim().split("/");
         for (String directory : directories) {
-            changeDirectory(admin, directory);
+            if (StringUtils.hasText(directory)) {
+                changeDirectory(admin, directory);
+            }
         }
     }
 
@@ -47,7 +49,7 @@ public class SpaceLocation {
         if (locations.size() > 0) {
             spaceLocation = locations.get(locations.size() - 1);
         } else {
-            spaceLocation = new SpaceLocation();
+            spaceLocation = new SpaceLocation(currentWorkingLocation);
             locations.add(spaceLocation);
         }
         if (directory.equals("..")) {
@@ -57,9 +59,13 @@ public class SpaceLocation {
                 spaceLocation.partitionId = null;
             } else if (spaceLocation.hasSpaceName()) {
                 spaceLocation.spaceName = null;
+            } else {
+                currentWorkingLocation.clear();
             }
         } else if (directory.equals("/")) {
-            clear();
+            currentWorkingLocation.clear();
+        } else if (currentWorkingLocation.getCurrentMountpoint() == null) {
+            currentWorkingLocation.changeLocation(admin, directory);
         } else {
             if (!spaceLocation.hasSpaceName()) {
                 if (admin.getSpaces().getSpaceByName(directory) != null) {
@@ -88,7 +94,7 @@ public class SpaceLocation {
                     }
                 } else {
                     // It's not a partition, so it must be another space.
-                    spaceLocation = new SpaceLocation();
+                    spaceLocation = new SpaceLocation(currentWorkingLocation);
                     locations.add(spaceLocation);
                     changeDirectory(admin, directory);
                 }
@@ -202,7 +208,7 @@ public class SpaceLocation {
                     if (this.hasObjectType()) {
                         location += String.format("/%s/%s/%s", this.spaceName, this.partitionId, this.objectType);
                     } else {
-                        location += String.format("/%s/%s$ ", this.spaceName, this.partitionId);
+                        location += String.format("/%s/%s", this.spaceName, this.partitionId);
                     }
                 } else {
                     location += String.format("/%s", this.spaceName);
@@ -211,7 +217,7 @@ public class SpaceLocation {
                 location += "/";
             }
         } else {
-            location += "/";
+//            location += "/";
         }
         return location;
     }

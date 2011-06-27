@@ -1,7 +1,7 @@
 package net.lagerwey.gash.command;
 
 import com.j_spaces.jdbc.driver.GConnection;
-import net.lagerwey.gash.CurrentWorkingSpace;
+import net.lagerwey.gash.CurrentWorkingLocation;
 import net.lagerwey.gash.Utils;
 import org.openspaces.admin.Admin;
 import org.openspaces.core.GigaSpace;
@@ -17,25 +17,25 @@ import java.util.Map;
  */
 public class SelectCommand implements Command {
 
-    private CurrentWorkingSpace currentWorkingSpace;
+    private CurrentWorkingLocation currentWorkingLocation;
 
     /**
      * Constructs a SelectCommand with a ChangeDirectoryCommand for the current working directory.
-     * @param currentWorkingSpace Current working directory location.
+     * @param currentWorkingLocation Current working directory location.
      */
-    public SelectCommand(CurrentWorkingSpace currentWorkingSpace) {
-        this.currentWorkingSpace = currentWorkingSpace;
+    public SelectCommand(CurrentWorkingLocation currentWorkingLocation) {
+        this.currentWorkingLocation = currentWorkingLocation;
     }
 
     @Override
     public void perform(Admin admin, String command, String arguments) {
         GigaSpace gigaSpace;
-        if (StringUtils.hasText(currentWorkingSpace.getSpaceName())) {
-            if (StringUtils.hasText(currentWorkingSpace.getPartitionId())) {
-                gigaSpace = admin.getSpaces().getSpaceByName(currentWorkingSpace.getSpaceName()).getPartition(Integer.parseInt(
-                        currentWorkingSpace.getPartitionId())).getPrimary().getGigaSpace();
+        if (StringUtils.hasText(currentWorkingLocation.getSpaceName())) {
+            if (StringUtils.hasText(currentWorkingLocation.getPartitionId())) {
+                gigaSpace = admin.getSpaces().getSpaceByName(currentWorkingLocation.getSpaceName()).getPartition(Integer.parseInt(
+                        currentWorkingLocation.getPartitionId())).getPrimary().getGigaSpace();
             } else {
-                gigaSpace = admin.getSpaces().getSpaceByName(currentWorkingSpace.getSpaceName()).getGigaSpace();
+                gigaSpace = admin.getSpaces().getSpaceByName(currentWorkingLocation.getSpaceName()).getGigaSpace();
             }
             if (gigaSpace != null) {
                 Utils.info("Querying space with query [%s %s]", command, arguments);

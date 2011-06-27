@@ -1,6 +1,6 @@
 package net.lagerwey.gash.command;
 
-import net.lagerwey.gash.CurrentWorkingSpace;
+import net.lagerwey.gash.CurrentWorkingLocation;
 import org.openspaces.admin.Admin;
 
 /**
@@ -8,15 +8,15 @@ import org.openspaces.admin.Admin;
  */
 public class ChangeDirectoryCommand implements Command {
 
-    private CurrentWorkingSpace currentWorkingSpace;
+    private CurrentWorkingLocation currentWorkingLocation;
 
-    public ChangeDirectoryCommand(CurrentWorkingSpace currentWorkingSpace) {
-        this.currentWorkingSpace = currentWorkingSpace;
+    public ChangeDirectoryCommand(CurrentWorkingLocation currentWorkingLocation) {
+        this.currentWorkingLocation = currentWorkingLocation;
     }
 
     @Override
     public void perform(Admin admin, String command, String arguments) {
-        currentWorkingSpace.changeLocation(admin, arguments);
+        currentWorkingLocation.changeLocation(admin, arguments);
     }
 
     @Override
