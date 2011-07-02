@@ -148,18 +148,18 @@ public class Gash {
 
     public String getConnectionString(Gash gash) {
         if (gash.isConnected()) {
-            if (admin.getGroups().length > 0) {
-                String lookupgroup = admin.getGroups()[0];
-                if (lookupgroup.endsWith("/")) {
-                    lookupgroup = lookupgroup.substring(0, lookupgroup.length() - 1);
-                }
-                return lookupgroup;
-            } else if (admin.getLocators().length > 0) {
+            if (admin.getLocators().length > 0) {
                 String locator = admin.getLocators()[0].toString();
                 if (locator.endsWith("/")) {
                     locator = locator.substring(0, locator.length() - 1);
                 }
                 return locator;
+            } else if (admin.getGroups().length > 0) {
+                String lookupgroup = admin.getGroups()[0];
+                if (lookupgroup.endsWith("/")) {
+                    lookupgroup = lookupgroup.substring(0, lookupgroup.length() - 1);
+                }
+                return lookupgroup;
             }
         }
         return "*not connected*";
