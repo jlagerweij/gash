@@ -18,6 +18,11 @@ import java.util.List;
  */
 public class TreeCommand implements Command {
 
+    private static final char BEGIN_ELBOW = '\u2514';
+    private static final char BEGIN_VERTICAL_AND_RIGHT = '\u251C';
+    private static final char VERTICAL = '\u2502';
+    private static final char HORIZONTAL = '\u2500';
+
     @Override
     public void perform(Admin admin, String command, String arguments) {
         List<TreeElement<Space>> tree = new ArrayList<TreeElement<Space>>();
@@ -42,19 +47,34 @@ public class TreeCommand implements Command {
             }
         }
 
-        printElements(tree, 1);
+        printElements(tree, 1, false);
     }
 
-    private void printElements(List<TreeElement<Space>> tree, int i) {
+    private void printElements(List<TreeElement<Space>> tree, int level, boolean parentIsLastElement) {
         Collections.sort(tree, new Comparator<TreeElement<Space>>() {
             @Override
             public int compare(TreeElement<Space> o1, TreeElement<Space> o2) {
                 return o1.getKey().compareToIgnoreCase(o2.getKey());
             }
         });
-        for (TreeElement<Space> spaceTreeElement : tree) {
-            System.out.printf("%-" + (i*2) + "s%s\n", " ", spaceTreeElement.getKey());
-            printElements(spaceTreeElement.getChildren(), i + 1);
+        for (int i = 0; i < tree.size(); i++) {
+            TreeElement<Space> spaceTreeElement = tree.get(i);
+            for (int j = 1; j < level; j++) {
+                if (parentIsLastElement) {
+                    System.out.print(" ");
+                } else {
+                    System.out.print(VERTICAL);
+                }
+                System.out.print("   ");
+            }
+            boolean isLastElement = i == tree.size() - 1;
+            if (isLastElement) {
+                System.out.print(BEGIN_ELBOW);
+            } else {
+                System.out.print(BEGIN_VERTICAL_AND_RIGHT);
+            }
+            System.out.printf("%s%s %s\n", HORIZONTAL, HORIZONTAL, spaceTreeElement.getKey());
+            printElements(spaceTreeElement.getChildren(), level + 1, isLastElement);
         }
     }
 
