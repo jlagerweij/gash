@@ -59,9 +59,19 @@ public class ListCommand implements Command {
 
     private void listMountpointLogs(Admin admin) {
         if (currentWorkingLocation.isInLogs()) {
-            for (Machine machine : admin.getMachines()) {
+            Machine[] machines = admin.getMachines().getMachines();
+            Arrays.sort(machines, new Comparator<Machine>() {
+                @Override
+                public int compare(Machine o1, Machine o2) {
+                    return o1.getHostName().compareToIgnoreCase(o2.getHostName());
+                }
+            });
+            for (Machine machine : machines) {
                 Utils.info("%s", machine.getHostName());
             }
+            Utils.info("GSA");
+            Utils.info("GSM");
+            Utils.info("GSC");
         } else if (currentWorkingLocation.isInHostname()) {
             Machine machine = admin.getMachines().getMachineByHostName(currentWorkingLocation.getLogLocation()
                                                                                          .getHostname());

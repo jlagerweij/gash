@@ -1,5 +1,6 @@
 package net.lagerwey.gash.command;
 
+import com.gigaspaces.cluster.activeelection.SpaceMode;
 import net.lagerwey.gash.Utils;
 import org.openspaces.admin.Admin;
 import org.openspaces.admin.gsc.GridServiceContainer;
@@ -86,7 +87,8 @@ public class SpacesCommand implements Command {
                         processingUnitTree = BEGIN_ELBOW;
                         processingUnitVertical = ' ';
                     }
-                    String primary = (processingUnitInstance.getBackupId() == 0 ? "" : "Backup");
+                    String primary = (processingUnitInstance.getSpaceInstance() == null || processingUnitInstance
+                            .getSpaceInstance().getMode().equals(SpaceMode.PRIMARY) ? "" : "Backup");
                     StringBuilder puNameAndClusterInfo = Utils.getPUNameAndClusterInfo(processingUnitInstance);
                     if (processingUnitInstance.isJee()) {
                         puNameAndClusterInfo.append(" Web");
@@ -146,8 +148,8 @@ public class SpacesCommand implements Command {
                                 }
                             } else {
                                 String instancePrimary = (
-                                        processingUnitInstance.getSpaceInstance().getBackupId()
-                                                == 0 ? " " : " Backup");
+                                        processingUnitInstance.getSpaceInstance().getMode()
+                                                .equals(SpaceMode.PRIMARY) ? " " : " Backup");
                                 if (showAll) {
                                     Utils.info("%s   %s   %s %s %s serviceId[%s]",
                                                containerVertical,

@@ -1,6 +1,7 @@
 package net.lagerwey.gash.command;
 
 import com.gigaspaces.async.AsyncFuture;
+import com.gigaspaces.cluster.activeelection.SpaceMode;
 import net.lagerwey.gash.tasks.DistributedServiceExporterTask;
 import org.openspaces.admin.Admin;
 import org.openspaces.admin.space.Space;
@@ -19,7 +20,7 @@ public class ServicesCommand implements Command {
             for (Space space : admin.getSpaces()) {
 //                if (space.getName().equals("ServicesLayerSpace")) {
                     for (SpaceInstance spaceInstance : space.getInstances()) {
-                        if (spaceInstance.getBackupId() == 0) {
+                        if (spaceInstance.getMode().equals(SpaceMode.PRIMARY)) {
                             // Primary space.
                             final AsyncFuture<String> execute = spaceInstance.getGigaSpace()
                                     .execute(new DistributedServiceExporterTask());

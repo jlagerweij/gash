@@ -1,5 +1,6 @@
 package net.lagerwey.gash.command;
 
+import com.gigaspaces.cluster.activeelection.SpaceMode;
 import net.lagerwey.gash.Utils;
 import org.openspaces.admin.Admin;
 import org.openspaces.admin.gsa.GridServiceAgent;
@@ -74,7 +75,7 @@ public class TopCommand implements Command {
                 } else if (processingUnitInstance.isEmbeddedSpaces()) {
                     if (processingUnitInstance.getEmbeddedSpaceDetails().isMirror()) {
                         mirror++;
-                    } else if (processingUnitInstance.getSpaceInstance().getBackupId() == 0){
+                    } else if (processingUnitInstance.getSpaceInstance().getMode().equals(SpaceMode.PRIMARY)){
                         statefull++;
                     }
                 } else {
