@@ -37,14 +37,25 @@ public class Gash {
     public static void main(String[] args) {
         System.setProperty("com.gigaspaces.exceptions.level", "SEVERE");
         System.setProperty("org.openspaces.level", "SEVERE");
+        String argLine = null;
         for (String arg : args) {
             if (arg.equals("--debug")) {
                 Utils.debugEnabled = true;
+            } else {
+                if (argLine == null) {
+                    argLine = "";
+                }
+                argLine += arg + " ";
             }
         }
 
+        String[] script = null;
+        if (argLine != null) {
+            script = argLine.split(";");
+        }
+
         Gash gash = new Gash();
-        gash.start();
+        gash.start(script);
     }
 
     public void setAdmin(Admin admin) {
@@ -55,7 +66,7 @@ public class Gash {
         return commands;
     }
 
-    private void start() {
+    private void start(String[] script) {
         currentWorkingLocation = new CurrentWorkingLocation();
         commands = new HashMap<String, Command>();
         commands.put("cd", new ChangeDirectoryCommand(currentWorkingLocation));
@@ -75,6 +86,12 @@ public class Gash {
         commands.put("tree", new TreeCommand());
         commands.put("services", new ServicesCommand());
 
+        if (script != null) {
+            for (String aScript : script) {
+                executeCommand(aScript);
+            }
+        }
+
         exitApplication = false;
         while (!exitApplication) {
 
@@ -82,34 +99,38 @@ public class Gash {
 
             String cmd = readCommandWithJLine(locator, commands);
 
-            String arguments = null;
-            if (cmd.indexOf(" ") > 0) {
-                arguments = cmd.substring(cmd.indexOf(" ") + 1);
-                cmd = cmd.substring(0, cmd.indexOf(" ")).toLowerCase();
-            } else {
-                cmd = cmd.toLowerCase();
-            }
-            if (commands.containsKey(cmd)) {
-                Command commandToPerform = commands.get(cmd);
-                if (!commandToPerform.connectionRequired() || isConnected()) {
-                    try {
-                        commandToPerform.perform(admin, cmd, arguments);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                } else {
-                    Utils.error("Could not perform command. Not connected. Use 'mount' to mount GigaSpaces.");
-                }
-            } else {
-                Utils.error("Unknown command '%s'", cmd);
-                commands.get("help").perform(admin, cmd, arguments);
-            }
+            executeCommand(cmd);
         }
 
         if (isConnected()) {
             admin.close();
         }
         System.exit(0);
+    }
+
+    private void executeCommand(String cmd) {
+        String arguments = null;
+        if (cmd.indexOf(" ") > 0) {
+            arguments = cmd.substring(cmd.indexOf(" ") + 1);
+            cmd = cmd.substring(0, cmd.indexOf(" ")).toLowerCase();
+        } else {
+            cmd = cmd.toLowerCase();
+        }
+        if (commands.containsKey(cmd)) {
+            Command commandToPerform = commands.get(cmd);
+            if (!commandToPerform.connectionRequired() || isConnected()) {
+                try {
+                    commandToPerform.perform(admin, cmd, arguments);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            } else {
+                Utils.error("Could not perform command. Not connected. Use 'mount' to mount GigaSpaces.");
+            }
+        } else {
+            Utils.error("Unknown command '%s'", cmd);
+            commands.get("help").perform(admin, cmd, arguments);
+        }
     }
 
     private String readCommandWithJLine(String locator, HashMap<String, Command> commands) {
@@ -142,6 +163,11 @@ public class Gash {
             currentWorkingLocation.clear();
             Utils.info("Disconnecting from groups [%s] and locators [%s].", lookupgroups, lookuplocators);
             admin.close();
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
             admin = null;
         }
     }
