@@ -14,7 +14,7 @@
 
     <scm>
         <connection>scm:svn:http://gash.googlecode.com/svn/trunk</connection>
-        <developerConnection>scm:svn:https://gash.googlecode.com/svn/tags/</developerConnection>
+        <developerConnection>scm:svn:https://gash.googlecode.com/svn/trunk/</developerConnection>
     </scm>
 
     <issueManagement>
