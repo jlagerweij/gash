@@ -3,6 +3,7 @@ package net.lagerwey.gash.command;
 import com.j_spaces.core.IJSpace;
 import com.j_spaces.jdbc.driver.GConnection;
 import net.lagerwey.gash.CurrentWorkingLocation;
+import net.lagerwey.gash.PrettyPrintUtils;
 import net.lagerwey.gash.Utils;
 import org.openspaces.admin.Admin;
 import org.openspaces.admin.gsa.GridServiceAgent;
@@ -16,10 +17,8 @@ import org.openspaces.admin.space.Space;
 import org.openspaces.admin.space.SpacePartition;
 import org.openspaces.core.space.SpaceServiceDetails;
 import org.openspaces.core.space.SpaceType;
-import org.springframework.util.StringUtils;
 
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -235,7 +234,7 @@ public class ListCommand implements Command {
             conn.setUseSingleSpace(true);
             Statement st = conn.createStatement();
             ResultSet rs = st.executeQuery(query);
-            nrOfObjects = prettyPrintResultSet(space, conn, rs);
+            nrOfObjects = PrettyPrintUtils.prettyPrintResultSet(currentWorkingLocation, space, conn, rs);
             rs.close();
             st.close();
             conn.close();
@@ -249,44 +248,6 @@ public class ListCommand implements Command {
         return nrOfObjects;
     }
 
-    private int prettyPrintResultSet(IJSpace space, GConnection conn, ResultSet rs) throws SQLException {
-        int nrOfObjects = 0;
-        StringBuilder sb = new StringBuilder();
-        for (int i = 1; i <= rs.getMetaData().getColumnCount(); i++) {
-            String columnName = rs.getMetaData().getColumnName(i);
-            sb.append(columnName.substring(columnName.lastIndexOf(".") + 1));
-            sb.append("\t");
-        }
-        Utils.println("%s", "__________________________________________________________________________________");
-        if (space.getFinderURL().getSchema().equals("mirror")) {
-            Utils.println("%s (Mirror space cannot return object counts)", sb.toString());
-        } else {
-            Utils.println("%s", sb.toString());
-        }
-        Utils.println("%s", "----------------------------------------------------------------------------------");
-
-        while (rs.next()) {
-            nrOfObjects++;
-            sb.setLength(0);
-            for (int i = 1; i <= rs.getMetaData().getColumnCount(); i++) {
-                sb.append(rs.getString(i));
-                sb.append("\t");
-            }
-            if (!StringUtils.hasText(currentWorkingLocation.getObjectType())) {
-                if (!space.getFinderURL().getSchema().equals("mirror")) {
-                    Statement countSt = conn.createStatement();
-                    ResultSet countRs = countSt.executeQuery("SELECT COUNT(*) FROM " + sb.toString().trim());
-                    while (countRs.next()) {
-                        sb.append(countRs.getString(1));
-                    }
-                    countRs.close();
-                    countSt.close();
-                }
-            }
-            Utils.println("%s", sb.toString());
-        }
-        return nrOfObjects;
-    }
 
     @Override
     public String description() {

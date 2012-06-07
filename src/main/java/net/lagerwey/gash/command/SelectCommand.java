@@ -1,7 +1,9 @@
 package net.lagerwey.gash.command;
 
+import com.j_spaces.core.IJSpace;
 import com.j_spaces.jdbc.driver.GConnection;
 import net.lagerwey.gash.CurrentWorkingLocation;
+import net.lagerwey.gash.PrettyPrintUtils;
 import net.lagerwey.gash.Utils;
 import org.openspaces.admin.Admin;
 import org.openspaces.core.GigaSpace;
@@ -42,7 +44,8 @@ public class SelectCommand implements Command {
                 Utils.println("Querying space with query [%s %s]", command, arguments);
 
                 try {
-                    GConnection conn = GConnection.getInstance(gigaSpace.getSpace());
+                    IJSpace space = gigaSpace.getSpace();
+                    GConnection conn = GConnection.getInstance(space);
 
                     Map<String, String> shortNames = new HashMap<String, String>();
                     Statement shortSt = conn.createStatement();
@@ -62,26 +65,7 @@ public class SelectCommand implements Command {
                     }
                     Statement st = conn.createStatement();
                     ResultSet rs = st.executeQuery(command + " " + arguments);
-                    StringBuilder sb = new StringBuilder();
-                    for (int i = 1; i <= rs.getMetaData().getColumnCount(); i++) {
-                        String columnName = rs.getMetaData().getColumnName(i);
-                        sb.append(columnName.substring(columnName.lastIndexOf(".") + 1));
-                        sb.append("\t");
-                    }
-                    Utils.println("%s",
-                            "__________________________________________________________________________________");
-                    Utils.println("%s", sb.toString());
-                    Utils.println("%s",
-                            "----------------------------------------------------------------------------------");
-
-                    while (rs.next()) {
-                        sb.setLength(0);
-                        for (int i = 1; i <= rs.getMetaData().getColumnCount(); i++) {
-                            sb.append(rs.getString(i));
-                            sb.append("\t");
-                        }
-                        Utils.println("%s", sb.toString());
-                    }
+                    PrettyPrintUtils.prettyPrintResultSet(currentWorkingLocation, space, conn, rs);
                     rs.close();
                     st.close();
                     conn.close();
