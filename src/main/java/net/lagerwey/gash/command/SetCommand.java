@@ -13,14 +13,14 @@ public class SetCommand implements Command {
     public void perform(Admin admin, String command, String arguments) {
         if (command.equals("set")) {
             if (arguments == null) {
-                Utils.info("'%s' is set to '%s'", "debug", Utils.debugEnabled);
+                Utils.println("'%s' is set to '%s'", "debug", Utils.debugEnabled);
             } else {
                 if (arguments.startsWith("debug ")) {
                     String debugArg = arguments.substring("debug ".length());
                     if (StringUtils.hasText(debugArg)) {
                         Utils.debugEnabled = Boolean.valueOf(debugArg);
                     } else {
-                        Utils.info("'%s' is set to '%s'", "debug", Utils.debugEnabled);
+                        Utils.println("'%s' is set to '%s'", "debug", Utils.debugEnabled);
                     }
                 }
             }

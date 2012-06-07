@@ -6,12 +6,13 @@ import org.openspaces.admin.Admin;
 
 /**
  * Exits the application.
-*/
+ */
 public class ExitCommand implements Command {
     private Gash gash;
 
     /**
      * Constructs an ExitCommand with a Gash instance.
+     *
      * @param gash Gash instance.
      */
     public ExitCommand(Gash gash) {
@@ -20,7 +21,7 @@ public class ExitCommand implements Command {
 
     @Override
     public void perform(Admin admin, String command, String arguments) {
-        Utils.info("Exiting...");
+        Utils.println("Exiting...");
         gash.setExitApplication(true);
     }
 

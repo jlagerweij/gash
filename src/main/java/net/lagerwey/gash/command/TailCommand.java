@@ -20,7 +20,7 @@ import static com.gigaspaces.log.LogEntryMatchers.lastN;
 
 /**
  */
-public class TailCommand implements Command{
+public class TailCommand implements Command {
 
     private CurrentWorkingLocation currentWorkingLocation;
 
@@ -55,7 +55,7 @@ public class TailCommand implements Command{
                     }
                 });
                 for (LogEntry logEntry : logEntries) {
-                    System.out.println(logEntry.getText());
+                    Utils.println(logEntry.getText());
                 }
             }
             return;
@@ -84,7 +84,7 @@ public class TailCommand implements Command{
         }
         if (logProviderGridComponent != null) {
             for (LogEntry logEntry : logProviderGridComponent.logEntries(lastN(10))) {
-                System.out.println(logEntry.getText());
+                Utils.println(logEntry.getText());
             }
         } else {
             Utils.error("Could not find logfile %s", arguments);

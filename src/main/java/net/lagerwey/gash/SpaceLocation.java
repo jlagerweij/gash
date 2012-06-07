@@ -79,7 +79,7 @@ public class SpaceLocation {
                         }
                     }
                     if (spaceLocation.spaceName == null) {
-                        Utils.info("Space not found '%s'", directory);
+                        Utils.println("Space not found '%s'", directory);
                     }
                 }
             } else if (!spaceLocation.hasPartitionId()) {
@@ -106,10 +106,10 @@ public class SpaceLocation {
                 } else if (shortObjectNames.containsKey(directory.toUpperCase())) {
                     spaceLocation.objectType = shortObjectNames.get(directory.toUpperCase());
                 } else {
-                    Utils.info("Object type not found [%s]", directory);
+                    Utils.println("Object type not found [%s]", directory);
                 }
             } else {
-                Utils.info("Nowhere to change to.");
+                Utils.println("Nowhere to change to.");
             }
         }
     }
@@ -154,7 +154,7 @@ public class SpaceLocation {
                     .getPartition(Integer.parseInt(
                             partitionId));
             GConnection conn = GConnection.getInstance(partition.getPrimary().getGigaSpace()
-                                                               .getSpace());
+                    .getSpace());
             Statement shortSt = conn.createStatement();
             ResultSet shortRs = shortSt.executeQuery("SELECT * FROM SYSTABLES");
             while (shortRs.next()) {

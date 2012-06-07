@@ -44,7 +44,7 @@ public class TopCommand implements Command {
             double memoryUsed = maxMemory - freeMemory;
             double memoryUsedPerc = operatingSystemStatistics.getPhysicalMemoryUsedPerc();
             StringBuilder progressBar = createProgressBar(memoryUsedPerc);
-            Utils.info(
+            Utils.println(
                     "Host: %s - Cpu(s): %s, %5.2f%% usage  Mem: %4.0f MB total, %4.0f MB used, %4.0f MB free, %5.2f%%  %s",
                     hostName,
                     cores,
@@ -56,13 +56,13 @@ public class TopCommand implements Command {
                     progressBar.toString());
         }
 
-        Utils.info("%s Hosts  %s GSA    %s GSM    %s GSC    %s LUS    %s Zones",
-                   admin.getMachines().getMachines().length,
-                   admin.getMachines().getSize(),
-                   admin.getGridServiceManagers().getSize(),
-                   admin.getGridServiceContainers().getSize(),
-                   admin.getLookupServices().getSize(),
-                   admin.getZones().getZones().length);
+        Utils.println("%s Hosts  %s GSA    %s GSM    %s GSC    %s LUS    %s Zones",
+                admin.getMachines().getMachines().length,
+                admin.getMachines().getSize(),
+                admin.getGridServiceManagers().getSize(),
+                admin.getGridServiceContainers().getSize(),
+                admin.getLookupServices().getSize(),
+                admin.getZones().getZones().length);
 
         int web = 0;
         int statefull = 0;
@@ -75,7 +75,7 @@ public class TopCommand implements Command {
                 } else if (processingUnitInstance.isEmbeddedSpaces()) {
                     if (processingUnitInstance.getEmbeddedSpaceDetails().isMirror()) {
                         mirror++;
-                    } else if (processingUnitInstance.getSpaceInstance().getMode().equals(SpaceMode.PRIMARY)){
+                    } else if (processingUnitInstance.getSpaceInstance().getMode().equals(SpaceMode.PRIMARY)) {
                         statefull++;
                     }
                 } else {
@@ -84,7 +84,7 @@ public class TopCommand implements Command {
 
             }
         }
-        Utils.info("%s Web    %s Statefull,    %s Stateless,    %s Mirrors", web, statefull, stateless, mirror);
+        Utils.println("%s Web    %s Statefull,    %s Stateless,    %s Mirrors", web, statefull, stateless, mirror);
 
         List<TopEntry> topEntries = new ArrayList<TopEntry>();
         if (showDetails) {
@@ -132,21 +132,21 @@ public class TopCommand implements Command {
         for (TopEntry topEntry : topEntries) {
             double memoryUsedPerc = topEntry.getMemoryUsedPerc();
             StringBuilder progressbar = createProgressBar(memoryUsedPerc);
-            Utils.info("%-15s  %5.2f%% usage  Mem: %4.0f MB total, %4.0f MB used, %4.0f MB free, %5.2f %%  %s",
-                       topEntry.getName(),
-                       topEntry.getCpuPerc() * 100,
-                       topEntry.getMaxMemory(),
-                       topEntry.getMemoryUsed(),
-                       topEntry.getFreeMemory(),
-                       topEntry.getMemoryUsedPerc(),
-                       progressbar.toString());
+            Utils.println("%-15s  %5.2f%% usage  Mem: %4.0f MB total, %4.0f MB used, %4.0f MB free, %5.2f %%  %s",
+                    topEntry.getName(),
+                    topEntry.getCpuPerc() * 100,
+                    topEntry.getMaxMemory(),
+                    topEntry.getMemoryUsed(),
+                    topEntry.getFreeMemory(),
+                    topEntry.getMemoryUsedPerc(),
+                    progressbar.toString());
         }
 
 
         /*
         try {
             ConsoleReader reader = new ConsoleReader();
-            System.out.print("Command>");
+            Utils.print("Command>");
             int ch = reader.readVirtualKey();
             switch (ch) {
                 case 'q': exitDashboard = true;
@@ -161,6 +161,7 @@ public class TopCommand implements Command {
 
     /**
      * Creates a progress bar in text.
+     *
      * @param percentage Current percentage of the progress.
      * @return A progress bar in text.
      */
@@ -202,12 +203,13 @@ public class TopCommand implements Command {
 
         /**
          * Constructs a TopEntry.
-         * @param name The name.
-         * @param cpuPerc The CPU percentage.
+         *
+         * @param name           The name.
+         * @param cpuPerc        The CPU percentage.
          * @param memoryUsedPerc The used memory percentage.
-         * @param maxMemory The maximum memory.
-         * @param memoryUsed The used memory.
-         * @param freeMemory The free memory.
+         * @param maxMemory      The maximum memory.
+         * @param memoryUsed     The used memory.
+         * @param freeMemory     The free memory.
          */
         public TopEntry(String name, double cpuPerc, double memoryUsedPerc, double maxMemory, double memoryUsed,
                         double freeMemory) {

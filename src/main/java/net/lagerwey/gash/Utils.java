@@ -5,6 +5,7 @@ import org.openspaces.admin.pu.ProcessingUnitInstance;
 import org.openspaces.admin.pu.ProcessingUnitPartition;
 import org.openspaces.core.cluster.ClusterInfo;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Comparator;
 
@@ -16,22 +17,40 @@ public class Utils {
 
     public static boolean debugEnabled = false;
 
-    public static void info(String format, Object... args) {
-        System.out.println(format(format, args));
-    }
-
-    public static void error(String format, Object... args) {
-        System.err.println(format(format, args));
-    }
-
-    public static void debug(String format, Object... args) {
-        if (debugEnabled) {
-            System.out.println(format("DEBUG: " + format, args));
+    private static void write(String string) {
+        try {
+            System.out.write(string.getBytes("UTF-8"));
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
+    private static void writeError(String string) {
+        try {
+            System.err.write(string.getBytes("UTF-8"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void print(String format, Object... args) {
+        write(format(format, args));
+//        OUT.print(format(format, args));
+    }
+
+    public static void println(String format, Object... args) {
+        write(format(format, args));
+        write("\n");
+    }
+
+    public static void error(String format, Object... args) {
+        writeError(format(format, args));
+        writeError("\n");
+    }
+
     public static void warn(String format, Object... args) {
-        System.out.println(format("WARN: " + format, args));
+        write(format("WARN: " + format, args));
+        write("\n");
     }
 
     public static void sortProcessingUnits(ProcessingUnit[] processingUnitsArray) {

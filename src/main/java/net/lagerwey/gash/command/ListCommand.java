@@ -1,5 +1,6 @@
 package net.lagerwey.gash.command;
 
+import com.j_spaces.core.IJSpace;
 import com.j_spaces.jdbc.driver.GConnection;
 import net.lagerwey.gash.CurrentWorkingLocation;
 import net.lagerwey.gash.Utils;
@@ -46,8 +47,8 @@ public class ListCommand implements Command {
     @Override
     public void perform(Admin admin, String command, String arguments) {
         if (currentWorkingLocation.getCurrentMountpoint() == null) {
-            Utils.info("logs/");
-            Utils.info("spaces/");
+            Utils.println("logs/");
+            Utils.println("spaces/");
         } else {
             if ("logs".equals(currentWorkingLocation.getCurrentMountpoint())) {
                 listMountpointLogs(admin);
@@ -67,23 +68,23 @@ public class ListCommand implements Command {
                 }
             });
             for (Machine machine : machines) {
-                Utils.info("%s", machine.getHostName());
+                Utils.println("%s", machine.getHostName());
             }
-            Utils.info("GSA");
-            Utils.info("GSM");
-            Utils.info("GSC");
+            Utils.println("GSA");
+            Utils.println("GSM");
+            Utils.println("GSC");
         } else if (currentWorkingLocation.isInHostname()) {
             Machine machine = admin.getMachines().getMachineByHostName(currentWorkingLocation.getLogLocation()
-                                                                                         .getHostname());
+                    .getHostname());
             if (machine != null) {
                 for (GridServiceAgent gridServiceAgent : machine.getGridServiceAgents()) {
-                    Utils.info("GSA");
+                    Utils.println("GSA");
                 }
                 for (GridServiceManager gridServiceManager : machine.getGridServiceManagers()) {
-                    Utils.info("GSM-%s", gridServiceManager.getAgentId());
+                    Utils.println("GSM-%s", gridServiceManager.getAgentId());
                 }
                 for (GridServiceContainer gridServiceContainer : machine.getGridServiceContainers()) {
-                    Utils.info("GSC-%s", gridServiceContainer.getAgentId());
+                    Utils.println("GSC-%s", gridServiceContainer.getAgentId());
                 }
             }
         }
@@ -107,10 +108,10 @@ public class ListCommand implements Command {
      * @param admin GigaSpaces Admin object.
      */
     private void listSpaces(Admin admin) {
-        Utils.info("total %s processing units, %s spaces.",
-                   admin.getProcessingUnits().getSize(),
-                   admin.getSpaces().getNames().size());
-        Utils.info("%-35s %-35s %-20s %-10s", "SpaceName", "PU Name", "PU Status", "Type");
+        Utils.println("total %s processing units, %s spaces.",
+                admin.getProcessingUnits().getSize(),
+                admin.getSpaces().getNames().size());
+        Utils.println("%-35s %-35s %-20s %-10s", "SpaceName", "PU Name", "PU Status", "Type");
 
         ProcessingUnits processingUnits = admin.getProcessingUnits();
         ProcessingUnit[] processingUnitsArray = processingUnits.getProcessingUnits();
@@ -124,7 +125,7 @@ public class ListCommand implements Command {
                 if (processingUnit.getInstances().length > 0 && processingUnit.getInstances()[0].isJee()) {
                     type = "Web";
                 }
-                Utils.info("%-35s %-35s %-20s %-10s", spaceName, puName, puStatus, type);
+                Utils.println("%-35s %-35s %-20s %-10s", spaceName, puName, puStatus, type);
             } else {
                 for (Space space : processingUnit.getSpaces()) {
                     spaceName = space.getName();
@@ -133,7 +134,7 @@ public class ListCommand implements Command {
                         type = "Web";
                     }
                     String puStatus = processingUnit.getStatus().toString();
-                    Utils.info("%-35s %-35s %-20s %-10s", spaceName, puName, puStatus, type);
+                    Utils.println("%-35s %-35s %-20s %-10s", spaceName, puName, puStatus, type);
                 }
             }
         }
@@ -153,9 +154,9 @@ public class ListCommand implements Command {
                 return o1.getPartitionId() - o2.getPartitionId();
             }
         });
-        Utils.info("total %s partitions", partitions.length);
+        Utils.println("total %s partitions", partitions.length);
         for (SpacePartition spacePartition : partitions) {
-            Utils.info("%s", spacePartition.getPartitionId());
+            Utils.println("%s", spacePartition.getPartitionId());
         }
 
         List<String> spaces = new ArrayList<String>();
@@ -184,7 +185,7 @@ public class ListCommand implements Command {
             }
         }
         for (String space : spaces) {
-            Utils.info("%s", space);
+            Utils.println("%s", space);
         }
     }
 
@@ -198,7 +199,7 @@ public class ListCommand implements Command {
         String query = "SELECT * FROM SYSTABLES";
         int objects = executeQuery(admin, query);
 
-        Utils.info("%s classes.", objects);
+        Utils.println("%s classes.", objects);
     }
 
     /**
@@ -209,10 +210,10 @@ public class ListCommand implements Command {
      */
     private void listObjects(Admin admin, String arguments) {
         String query = String.format("SELECT * FROM %s %s",
-                                     currentWorkingLocation.getObjectType(),
-                                     arguments == null ? "WHERE rownum < 10" : arguments);
+                currentWorkingLocation.getObjectType(),
+                arguments == null ? "WHERE rownum < 10" : arguments);
         int objects = executeQuery(admin, query);
-        Utils.info("%s objects.", objects);
+        Utils.println("%s objects.", objects);
     }
 
     /**
@@ -225,15 +226,16 @@ public class ListCommand implements Command {
     private int executeQuery(Admin admin, String query) {
         int nrOfObjects = 0;
         try {
-            System.out.println("Query: " + query);
+            Utils.println("Query: " + query);
             Space spaceByName = admin.getSpaces().getSpaceByName(currentWorkingLocation.getSpaceName());
             SpacePartition partition = spaceByName.getPartition(Integer.parseInt(currentWorkingLocation
-                                                                                         .getPartitionId()));
-            GConnection conn = GConnection.getInstance(partition.getPrimary().getGigaSpace().getSpace());
+                    .getPartitionId()));
+            IJSpace space = partition.getPrimary().getGigaSpace().getSpace();
+            GConnection conn = GConnection.getInstance(space);
             conn.setUseSingleSpace(true);
             Statement st = conn.createStatement();
             ResultSet rs = st.executeQuery(query);
-            nrOfObjects = prettyPrintResultSet(conn, rs);
+            nrOfObjects = prettyPrintResultSet(space, conn, rs);
             rs.close();
             st.close();
             conn.close();
@@ -241,13 +243,13 @@ public class ListCommand implements Command {
             if (Utils.debugEnabled) {
                 e.printStackTrace();
             } else {
-                Utils.info("ERROR: %s", e.getMessage());
+                Utils.println("ERROR: %s", e.getMessage());
             }
         }
         return nrOfObjects;
     }
 
-    private int prettyPrintResultSet(GConnection conn, ResultSet rs) throws SQLException {
+    private int prettyPrintResultSet(IJSpace space, GConnection conn, ResultSet rs) throws SQLException {
         int nrOfObjects = 0;
         StringBuilder sb = new StringBuilder();
         for (int i = 1; i <= rs.getMetaData().getColumnCount(); i++) {
@@ -255,9 +257,13 @@ public class ListCommand implements Command {
             sb.append(columnName.substring(columnName.lastIndexOf(".") + 1));
             sb.append("\t");
         }
-        Utils.info("%s", "__________________________________________________________________________________");
-        Utils.info("%s", sb.toString());
-        Utils.info("%s", "----------------------------------------------------------------------------------");
+        Utils.println("%s", "__________________________________________________________________________________");
+        if (space.getFinderURL().getSchema().equals("mirror")) {
+            Utils.println("%s (Mirror space cannot return object counts)", sb.toString());
+        } else {
+            Utils.println("%s", sb.toString());
+        }
+        Utils.println("%s", "----------------------------------------------------------------------------------");
 
         while (rs.next()) {
             nrOfObjects++;
@@ -267,15 +273,17 @@ public class ListCommand implements Command {
                 sb.append("\t");
             }
             if (!StringUtils.hasText(currentWorkingLocation.getObjectType())) {
-                Statement countSt = conn.createStatement();
-                ResultSet countRs = countSt.executeQuery("SELECT COUNT(*) FROM " + sb.toString().trim());
-                while (countRs.next()) {
-                    sb.append(countRs.getString(1));
+                if (!space.getFinderURL().getSchema().equals("mirror")) {
+                    Statement countSt = conn.createStatement();
+                    ResultSet countRs = countSt.executeQuery("SELECT COUNT(*) FROM " + sb.toString().trim());
+                    while (countRs.next()) {
+                        sb.append(countRs.getString(1));
+                    }
+                    countRs.close();
+                    countSt.close();
                 }
-                countRs.close();
-                countSt.close();
             }
-            Utils.info("%s", sb.toString());
+            Utils.println("%s", sb.toString());
         }
         return nrOfObjects;
     }

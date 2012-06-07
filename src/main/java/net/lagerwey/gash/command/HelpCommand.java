@@ -10,13 +10,14 @@ import java.util.List;
 
 /**
  * Prints out the help for all available commands.
-*/
+ */
 public class HelpCommand implements Command {
 
     private Gash gash;
 
     /**
      * Constructs the HelpCommand with a Gash instance.
+     *
      * @param gash Gash instance.
      */
     public HelpCommand(Gash gash) {
@@ -40,14 +41,14 @@ public class HelpCommand implements Command {
                 while (key.length() < longest) {
                     key = key + " ";
                 }
-                Utils.info("  %s\t%s", key, description);
+                Utils.println("  %s\t%s", key, description);
             }
         }
     }
 
     @Override
     public String description() {
-        return "Shows this help info";
+        return "Shows this help println";
     }
 
     @Override

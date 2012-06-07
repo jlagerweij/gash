@@ -17,14 +17,14 @@ public class UnitCommand implements Command {
         ProcessingUnits processingUnits = admin.getProcessingUnits();
         ProcessingUnit[] processingUnitsArray = processingUnits.getProcessingUnits();
         sortProcessingUnits(processingUnitsArray);
-        Utils.info("total %s units.", processingUnits.getSize());
-        Utils.info("Status\t#Spaces\tName");
-        Utils.info("--------------------------------------------------------------------------------");
+        Utils.println("total %s units.", processingUnits.getSize());
+        Utils.println("Status\t#Spaces\tName");
+        Utils.println("--------------------------------------------------------------------------------");
 
         for (ProcessingUnit processingUnit : processingUnitsArray) {
             String spaces = (
                     processingUnit.getSpaces().length > 0 ? "" + processingUnit.getSpaces().length : "-");
-            Utils.info("%s\t%s\t%s", processingUnit.getStatus(), spaces, processingUnit.getName());
+            Utils.println("%s\t%s\t%s", processingUnit.getStatus(), spaces, processingUnit.getName());
         }
     }
 

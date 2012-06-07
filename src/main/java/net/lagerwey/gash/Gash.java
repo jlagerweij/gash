@@ -2,22 +2,7 @@ package net.lagerwey.gash;
 
 import jline.ConsoleReader;
 import jline.SimpleCompletor;
-import net.lagerwey.gash.command.ChangeDirectoryCommand;
-import net.lagerwey.gash.command.CloseCommand;
-import net.lagerwey.gash.command.Command;
-import net.lagerwey.gash.command.ExitCommand;
-import net.lagerwey.gash.command.HelpCommand;
-import net.lagerwey.gash.command.ListCommand;
-import net.lagerwey.gash.command.MountCommand;
-import net.lagerwey.gash.command.SQLCommand;
-import net.lagerwey.gash.command.SelectCommand;
-import net.lagerwey.gash.command.ServicesCommand;
-import net.lagerwey.gash.command.SetCommand;
-import net.lagerwey.gash.command.SpacesCommand;
-import net.lagerwey.gash.command.TailCommand;
-import net.lagerwey.gash.command.TopCommand;
-import net.lagerwey.gash.command.TreeCommand;
-import net.lagerwey.gash.command.UnitCommand;
+import net.lagerwey.gash.command.*;
 import org.openspaces.admin.Admin;
 
 import java.io.IOException;
@@ -30,7 +15,7 @@ public class Gash {
     private Admin admin;
     private String lookupgroups = null;
     private String lookuplocators = lookupgroups;
-    static boolean exitApplication;
+    private static boolean exitApplication;
     private HashMap<String, Command> commands;
     private CurrentWorkingLocation currentWorkingLocation;
 
@@ -161,7 +146,7 @@ public class Gash {
     public void disconnect() {
         if (isConnected()) {
             currentWorkingLocation.clear();
-            Utils.info("Disconnecting from groups [%s] and locators [%s].", lookupgroups, lookuplocators);
+            Utils.println("Disconnecting from groups [%s] and locators [%s].", lookupgroups, lookuplocators);
             admin.close();
             try {
                 Thread.sleep(2000);

@@ -1,6 +1,7 @@
 package net.lagerwey.gash.tasks;
 
 import com.gigaspaces.async.AsyncResult;
+import net.lagerwey.gash.Utils;
 import org.openspaces.core.executor.DistributedTask;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
@@ -18,15 +19,15 @@ public class DistributedServiceExporterTask implements DistributedTask<Integer, 
     }
 
     public Integer execute() throws Exception {
-        System.out.println("XXX");
+        Utils.println("XXX");
         if (applicationContext != null) {
-            System.out.println("Found " + applicationContext);
+            Utils.println("Found " + applicationContext);
         }
         return 1;
     }
 
     public String reduce(List<AsyncResult<Integer>> results) throws Exception {
-        String sum = "0" + applicationContext ;
+        String sum = "0" + applicationContext;
         for (AsyncResult<Integer> result : results) {
             //noinspection ThrowableResultOfMethodCallIgnored
             if (result.getException() != null) {

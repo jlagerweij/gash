@@ -54,11 +54,8 @@ public class TreeElement<E> {
 
         TreeElement that = (TreeElement) o;
 
-        if (key != null ? !key.equals(that.key) : that.key != null) {
-            return false;
-        }
+        return !(key != null ? !key.equals(that.key) : that.key != null);
 
-        return true;
     }
 
     @Override

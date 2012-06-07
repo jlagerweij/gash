@@ -2,6 +2,7 @@ package net.lagerwey.gash.command;
 
 import com.gigaspaces.async.AsyncFuture;
 import com.gigaspaces.cluster.activeelection.SpaceMode;
+import net.lagerwey.gash.Utils;
 import net.lagerwey.gash.tasks.DistributedServiceExporterTask;
 import org.openspaces.admin.Admin;
 import org.openspaces.admin.space.Space;
@@ -19,20 +20,20 @@ public class ServicesCommand implements Command {
         try {
             for (Space space : admin.getSpaces()) {
 //                if (space.getName().equals("ServicesLayerSpace")) {
-                    for (SpaceInstance spaceInstance : space.getInstances()) {
-                        if (spaceInstance.getMode().equals(SpaceMode.PRIMARY)) {
-                            // Primary space.
-                            final AsyncFuture<String> execute = spaceInstance.getGigaSpace()
-                                    .execute(new DistributedServiceExporterTask());
-                            String result = execute.get();
-                            System.out.println(result);
-                        }
+                for (SpaceInstance spaceInstance : space.getInstances()) {
+                    if (spaceInstance.getMode().equals(SpaceMode.PRIMARY)) {
+                        // Primary space.
+                        final AsyncFuture<String> execute = spaceInstance.getGigaSpace()
+                                .execute(new DistributedServiceExporterTask());
+                        String result = execute.get();
+                        Utils.println(result);
                     }
+                }
 //                }
                 /*
                 if (space.getName().equals("ServicesLayerSpace")) {
                     final GigaSpace gigaSpace = space.getGigaSpace();
-                    System.out.println("Executing on space " + gigaSpace.getName());
+                    Utils.println("Executing on space " + gigaSpace.getName());
                     final AsyncFuture<Long> execute = gigaSpace
                             .execute(new DistributedServiceExporterTask());
                     Long result = execute.get();

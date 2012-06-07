@@ -1,6 +1,7 @@
 package net.lagerwey.gash.command;
 
 import net.lagerwey.gash.TreeElement;
+import net.lagerwey.gash.Utils;
 import org.openspaces.admin.Admin;
 import org.openspaces.admin.gsc.GridServiceContainer;
 import org.openspaces.admin.pu.ProcessingUnitInstance;
@@ -18,10 +19,10 @@ import java.util.List;
  */
 public class TreeCommand implements Command {
 
-    private static final char BEGIN_ELBOW = '\u2514';
-    private static final char BEGIN_VERTICAL_AND_RIGHT = '\u251C';
-    private static final char VERTICAL = '\u2502';
-    private static final char HORIZONTAL = '\u2500';
+    private static final String BEGIN_ELBOW = "+";
+    private static final String BEGIN_VERTICAL_AND_RIGHT = "+";
+    private static final String VERTICAL = "|";
+    private static final String HORIZONTAL = "-";
 
     @Override
     public void perform(Admin admin, String command, String arguments) {
@@ -54,6 +55,9 @@ public class TreeCommand implements Command {
         Collections.sort(tree, new Comparator<TreeElement<Space>>() {
             @Override
             public int compare(TreeElement<Space> o1, TreeElement<Space> o2) {
+                if (o1 == null || o2 == null) {
+                    return 0;
+                }
                 return o1.getKey().compareToIgnoreCase(o2.getKey());
             }
         });
@@ -61,30 +65,21 @@ public class TreeCommand implements Command {
             TreeElement<Space> spaceTreeElement = tree.get(i);
             for (int j = 1; j < level; j++) {
                 if (parentIsLastElement) {
-                    System.out.print(" ");
+                    Utils.print(" ");
                 } else {
-                    System.out.print(VERTICAL);
+                    Utils.print(VERTICAL);
                 }
-                System.out.print("   ");
+                Utils.print("   ");
             }
             boolean isLastElement = i == tree.size() - 1;
             if (isLastElement) {
-                System.out.print(BEGIN_ELBOW);
+                Utils.print(BEGIN_ELBOW);
             } else {
-                System.out.print(BEGIN_VERTICAL_AND_RIGHT);
+                Utils.print(BEGIN_VERTICAL_AND_RIGHT);
             }
-            System.out.printf("%s%s %s\n", HORIZONTAL, HORIZONTAL, spaceTreeElement.getKey());
+            Utils.println("%s%s %s", HORIZONTAL, HORIZONTAL, spaceTreeElement.getKey());
             printElements(spaceTreeElement.getChildren(), level + 1, isLastElement);
         }
-    }
-
-    private TreeElement<Space> findTreeElement(List<TreeElement<Space>> tree, Space space) {
-        for (TreeElement<Space> spaceTreeElement : tree) {
-            if (spaceTreeElement.getKey().equals(space.getName())) {
-                return spaceTreeElement;
-            }
-        }
-        return null;
     }
 
     @Override

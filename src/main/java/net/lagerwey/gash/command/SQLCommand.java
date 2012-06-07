@@ -32,7 +32,7 @@ public class SQLCommand implements Command {
     public void perform(Admin admin, String command, String arguments) {
 
         if (!StringUtils.hasText(currentWorkingLocation.getSpaceName())) {
-            Utils.info("No space selected.");
+            Utils.println("No space selected.");
             return;
         }
 
@@ -44,11 +44,11 @@ public class SQLCommand implements Command {
             gigaSpace = admin.getSpaces().getSpaceByName(currentWorkingLocation.getSpaceName()).getGigaSpace();
         }
         if (gigaSpace == null) {
-            Utils.info("Found no GigaSpaces space.");
+            Utils.println("Found no GigaSpaces space.");
             return;
         }
 
-        Utils.info("Querying space with query [%s %s]", command, arguments);
+        Utils.println("Querying space with query [%s %s]", command, arguments);
         try {
             GConnection conn = GConnection.getInstance(gigaSpace.getSpace());
 
@@ -76,11 +76,11 @@ public class SQLCommand implements Command {
                 sb.append(columnName.substring(columnName.lastIndexOf(".") + 1));
                 sb.append("\t");
             }
-            Utils.info("%s",
-                       "__________________________________________________________________________________");
-            Utils.info("%s", sb.toString());
-            Utils.info("%s",
-                       "----------------------------------------------------------------------------------");
+            Utils.println("%s",
+                    "__________________________________________________________________________________");
+            Utils.println("%s", sb.toString());
+            Utils.println("%s",
+                    "----------------------------------------------------------------------------------");
 
             while (rs.next()) {
                 sb.setLength(0);
@@ -88,7 +88,7 @@ public class SQLCommand implements Command {
                     sb.append(rs.getString(i));
                     sb.append("\t");
                 }
-                Utils.info("%s", sb.toString());
+                Utils.println("%s", sb.toString());
             }
             rs.close();
             st.close();

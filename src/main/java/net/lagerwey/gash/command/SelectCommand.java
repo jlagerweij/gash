@@ -21,6 +21,7 @@ public class SelectCommand implements Command {
 
     /**
      * Constructs a SelectCommand with a ChangeDirectoryCommand for the current working directory.
+     *
      * @param currentWorkingLocation Current working directory location.
      */
     public SelectCommand(CurrentWorkingLocation currentWorkingLocation) {
@@ -38,17 +39,17 @@ public class SelectCommand implements Command {
                 gigaSpace = admin.getSpaces().getSpaceByName(currentWorkingLocation.getSpaceName()).getGigaSpace();
             }
             if (gigaSpace != null) {
-                Utils.info("Querying space with query [%s %s]", command, arguments);
+                Utils.println("Querying space with query [%s %s]", command, arguments);
 
                 try {
                     GConnection conn = GConnection.getInstance(gigaSpace.getSpace());
 
-                    Map<String,String> shortNames = new HashMap<String,String>();
+                    Map<String, String> shortNames = new HashMap<String, String>();
                     Statement shortSt = conn.createStatement();
                     ResultSet shortRs = shortSt.executeQuery("SELECT * FROM SYSTABLES");
                     while (shortRs.next()) {
                         String name = shortRs.getString(1);
-                        String shortName = name.substring(name.lastIndexOf(".")+1).replaceAll("[a-z]", "");
+                        String shortName = name.substring(name.lastIndexOf(".") + 1).replaceAll("[a-z]", "");
                         shortNames.put(shortName.toUpperCase(), name);
                     }
                     shortRs.close();
@@ -64,12 +65,14 @@ public class SelectCommand implements Command {
                     StringBuilder sb = new StringBuilder();
                     for (int i = 1; i <= rs.getMetaData().getColumnCount(); i++) {
                         String columnName = rs.getMetaData().getColumnName(i);
-                        sb.append(columnName.substring(columnName.lastIndexOf(".")+1));
+                        sb.append(columnName.substring(columnName.lastIndexOf(".") + 1));
                         sb.append("\t");
                     }
-                    Utils.info("%s", "__________________________________________________________________________________");
-                    Utils.info("%s", sb.toString());
-                    Utils.info("%s", "----------------------------------------------------------------------------------");
+                    Utils.println("%s",
+                            "__________________________________________________________________________________");
+                    Utils.println("%s", sb.toString());
+                    Utils.println("%s",
+                            "----------------------------------------------------------------------------------");
 
                     while (rs.next()) {
                         sb.setLength(0);
@@ -77,7 +80,7 @@ public class SelectCommand implements Command {
                             sb.append(rs.getString(i));
                             sb.append("\t");
                         }
-                        Utils.info("%s", sb.toString());
+                        Utils.println("%s", sb.toString());
                     }
                     rs.close();
                     st.close();
@@ -87,10 +90,10 @@ public class SelectCommand implements Command {
                 }
 
             } else {
-                Utils.info("Found no GigaSpaces space.");
+                Utils.println("Found no GigaSpaces space.");
             }
         } else {
-            Utils.info("No space selected.");
+            Utils.println("No space selected.");
         }
     }
 

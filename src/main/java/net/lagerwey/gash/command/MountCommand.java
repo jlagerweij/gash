@@ -25,7 +25,8 @@ public class MountCommand implements Command {
 
     /**
      * Constructs a MountCommand with a Gash instance.
-     * @param gash Gash instance.
+     *
+     * @param gash                   Gash instance.
      * @param currentWorkingLocation The current working location.
      */
     public MountCommand(Gash gash, CurrentWorkingLocation currentWorkingLocation) {
@@ -75,7 +76,8 @@ public class MountCommand implements Command {
 
     /**
      * Connects to a GigaSpaces grid.
-     * @param lookupgroups Lookupgroups to use in the new connection.
+     *
+     * @param lookupgroups   Lookupgroups to use in the new connection.
      * @param lookuplocators Lookuplocators to use in the new connection.
      */
     private void connect(String lookupgroups, String lookuplocators) {
@@ -87,23 +89,23 @@ public class MountCommand implements Command {
             adminFactory.addLocators(lookuplocators);
         }
         Admin admin = adminFactory.createAdmin();
-        System.out.print(format("Connecting to groups[%s] and lookuplocators [%s].", lookupgroups, lookuplocators));
+        Utils.print(format("Connecting to groups[%s] and lookuplocators [%s].", lookupgroups, lookuplocators));
         admin.getLookupServices().waitFor(1, 1, TimeUnit.SECONDS);
-        System.out.print(".");
+        Utils.print(".");
         admin.getMachines().waitFor(1, 1, TimeUnit.SECONDS);
-        System.out.print(".");
+        Utils.print(".");
         admin.getGridServiceAgents().waitFor(1, 1, TimeUnit.SECONDS);
-        System.out.print(".");
+        Utils.print(".");
         admin.getGridServiceManagers().waitFor(1, 1, TimeUnit.SECONDS);
-        System.out.print(".");
+        Utils.print(".");
         admin.getGridServiceContainers().waitFor(1, 1, TimeUnit.SECONDS);
-        System.out.println(".");
+        Utils.println(".");
         gash.setAdmin(admin);
 
         currentWorkingLocation.changeLocation(admin, "spaces");
 
         String locator = gash.getConnectionString(gash);
-        Utils.info("Connected to [%s].", locator);
+        Utils.println("Connected to [%s].", locator);
     }
 
 
