@@ -70,7 +70,7 @@ public class PrettyPrintUtils {
 
             Utils.println("");
             if (rowNr == 0) {
-                printColumnLine(lengthPerColumn, dataRow, "-");
+                printColumnLine(lengthPerColumn, dataRow, "_");
             }
             rowNr++;
         }
