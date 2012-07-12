@@ -1,0 +1,48 @@
+apply plugin: 'java'
+apply plugin: 'maven'
+apply plugin: com.smokejumperit.gradle.OneJarPlugin
+
+group = 'net.lagerwey'
+version = '1.3-SNAPSHOT'
+
+ext {
+    sourceCompatibility = JavaVersion.VERSION_1_6   /* define the valid syntax level for source files */
+    targetCompatibility = JavaVersion.VERSION_1_6   /* define binary compatiblity version */
+}
+
+configurations.compile.transitive = true
+
+buildscript {
+    repositories {
+        maven {
+            url uri('lib')
+        }
+    }
+    dependencies {
+        classpath 'com.smokejumperit:gradle-plugins:0.8.3-SNAPSHOT'
+    }
+}
+
+repositories {
+    mavenRepo url: "lib"
+    mavenRepo url: "http://repo.maven.apache.org/maven2"
+}
+dependencies {
+    compile("com.gigaspaces:gs-openspaces:8.0.6") {
+        exclude(module: 'openjpa-all')
+    }
+    compile "jline:jline:1.0"
+}
+
+
+jar {
+    manifest {
+        attributes('Main-Class': 'net.lagerwey.gash.Gash')
+    }
+}
+
+assemble.dependsOn oneJar
+
+artifacts {
+    archives oneJar.jar
+}
