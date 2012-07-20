@@ -8,10 +8,10 @@ import org.springframework.util.StringUtils;
  */
 public class LogLocation {
 
-    private CurrentWorkingLocation currentWorkingLocation;
+    private WorkingLocation currentWorkingLocation;
     private String hostname;
 
-    public LogLocation(CurrentWorkingLocation currentWorkingLocation) {
+    public LogLocation(WorkingLocation currentWorkingLocation) {
         this.currentWorkingLocation = currentWorkingLocation;
     }
 
@@ -21,7 +21,7 @@ public class LogLocation {
         } else if (location.equals("/")) {
             currentWorkingLocation.clear();
         } else if (currentWorkingLocation.getCurrentMountpoint() == null) {
-            currentWorkingLocation.changeLocation(admin, location);
+            currentWorkingLocation.changeLocation(location);
         } else if (StringUtils.hasText(location)) {
             Machine machine = admin.getMachines().getMachineByHostName(location);
             if (machine != null) {

@@ -1,31 +1,29 @@
 package net.lagerwey.gash.command;
 
-import net.lagerwey.gash.CurrentWorkingLocation;
+import net.lagerwey.gash.Gash;
 import org.openspaces.admin.Admin;
 
 /**
  * Changes directory by /<spacename>/<partitionId>/<objectType>.
  */
-public class ChangeDirectoryCommand implements Command {
+public class ChangeDirectoryCommand extends AbstractConnectedCommand {
 
-    private CurrentWorkingLocation currentWorkingLocation;
-
-    public ChangeDirectoryCommand(CurrentWorkingLocation currentWorkingLocation) {
-        this.currentWorkingLocation = currentWorkingLocation;
+    /**
+     * Constructs this command with a Gash instance.
+     *
+     * @param gash Gash instance.
+     */
+    public ChangeDirectoryCommand(final Gash gash) {
+        super(gash);
     }
 
     @Override
-    public void perform(Admin admin, String command, String arguments) {
-        currentWorkingLocation.changeLocation(admin, arguments);
+    public void perform(String command, String arguments) {
+        gash.getWorkingLocation().changeLocation(arguments);
     }
 
     @Override
     public String description() {
-        return "Changes current working location.";
-    }
-
-    @Override
-    public boolean connectionRequired() {
-        return true;
+        return "Changes current working location";
     }
 }

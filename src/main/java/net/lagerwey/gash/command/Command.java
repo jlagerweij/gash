@@ -1,5 +1,6 @@
 package net.lagerwey.gash.command;
 
+import net.lagerwey.gash.GashState;
 import org.openspaces.admin.Admin;
 
 /**
@@ -10,21 +11,27 @@ public interface Command {
     /**
      * Performs the command.
      *
-     * @param admin GigaSpaces Admin object.
-     * @param command Command to execute.
+     * @param command   Command to execute.
      * @param arguments Arguments to the command.
      */
-    public void perform(Admin admin, String command, String arguments);
+    public void perform(String command, String arguments);
 
     /**
      * The help description of this command.
+     *
      * @return The help description of this command.
      */
     public String description();
 
     /**
-     * Boolean indicating the need for a connection.
-     * @return True if a connection is required, false otherwise.
+     * Returns an array containing the required states for this command.
+     *
+     * @return Array containing the required states
      */
-    boolean connectionRequired();
+    GashState[] requiredStates();
+
+    /**
+     * Shows the help contents for this command.
+     */
+    void showHelp();
 }

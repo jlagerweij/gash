@@ -1,7 +1,8 @@
 package net.lagerwey.gash.command;
 
 import com.gigaspaces.log.LogEntry;
-import net.lagerwey.gash.CurrentWorkingLocation;
+import net.lagerwey.gash.Gash;
+import net.lagerwey.gash.WorkingLocation;
 import net.lagerwey.gash.Utils;
 import org.openspaces.admin.Admin;
 import org.openspaces.admin.LogProviderGridComponent;
@@ -20,17 +21,21 @@ import static com.gigaspaces.log.LogEntryMatchers.lastN;
 
 /**
  */
-public class TailCommand implements Command {
+public class TailCommand extends AbstractWorkingLocationCommand {
 
-    private CurrentWorkingLocation currentWorkingLocation;
-
-    public TailCommand(CurrentWorkingLocation currentWorkingLocation) {
-        this.currentWorkingLocation = currentWorkingLocation;
+    /**
+     * Constructs this command with a Gash instance.
+     *
+     * @param gash Gash instance.
+     */
+    public TailCommand(final Gash gash) {
+        super(gash);
     }
 
     @Override
-    public void perform(Admin admin, String command, String arguments) {
-        String hostname = currentWorkingLocation.getLogLocation().getHostname();
+    public void perform(String command, String arguments) {
+        String hostname = gash.getWorkingLocation().getLogLocation().getHostname();
+        Admin admin = gash.getWorkingLocation().getCurrentConnection().getAdmin();
         if (hostname == null) {
 //            Utils.error("Not in /logs/<hostname> location. Tail can only be performed from that location.");
             if (arguments != null) {
@@ -93,11 +98,11 @@ public class TailCommand implements Command {
 
     @Override
     public String description() {
-        return "Output the last part of files.";
+        return "Output the last part of files";
     }
 
     @Override
-    public boolean connectionRequired() {
-        return true;
+    public void showHelp() {
+        Utils.println("Usage: tail [GSA] [GSM] [GSC]");
     }
 }

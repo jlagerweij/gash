@@ -1,5 +1,6 @@
 package net.lagerwey.gash.command;
 
+import net.lagerwey.gash.Gash;
 import net.lagerwey.gash.Utils;
 import org.openspaces.admin.Admin;
 import org.openspaces.admin.pu.ProcessingUnit;
@@ -10,10 +11,20 @@ import static net.lagerwey.gash.Utils.sortProcessingUnits;
 /**
  * Prints a list of processing units.
  */
-public class UnitCommand implements Command {
+public class UnitCommand extends AbstractConnectedCommand {
+
+    /**
+     * Constructs this command with a Gash instance.
+     *
+     * @param gash Gash instance.
+     */
+    public UnitCommand(final Gash gash) {
+        super(gash);
+    }
 
     @Override
-    public void perform(Admin admin, String command, String arguments) {
+    public void perform(String command, String arguments) {
+        Admin admin = gash.getWorkingLocation().getCurrentConnection().getAdmin();
         ProcessingUnits processingUnits = admin.getProcessingUnits();
         ProcessingUnit[] processingUnitsArray = processingUnits.getProcessingUnits();
         sortProcessingUnits(processingUnitsArray);
@@ -30,12 +41,6 @@ public class UnitCommand implements Command {
 
     @Override
     public String description() {
-        return "Lists all processing units.";
+        return "Lists all processing units";
     }
-
-    @Override
-    public boolean connectionRequired() {
-        return true;
-    }
-
 }

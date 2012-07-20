@@ -1,5 +1,6 @@
 package net.lagerwey.gash.command;
 
+import net.lagerwey.gash.Gash;
 import net.lagerwey.gash.TreeElement;
 import net.lagerwey.gash.Utils;
 import org.openspaces.admin.Admin;
@@ -17,15 +18,25 @@ import java.util.List;
 /**
  * Creates a tree of spaces and remote space uses.
  */
-public class TreeCommand implements Command {
+public class TreeCommand extends AbstractConnectedCommand {
 
     private static final String BEGIN_ELBOW = "+";
     private static final String BEGIN_VERTICAL_AND_RIGHT = "+";
     private static final String VERTICAL = "|";
     private static final String HORIZONTAL = "-";
 
+    /**
+     * Constructs this command with a Gash instance.
+     *
+     * @param gash Gash instance.
+     */
+    public TreeCommand(final Gash gash) {
+        super(gash);
+    }
+
     @Override
-    public void perform(Admin admin, String command, String arguments) {
+    public void perform(String command, String arguments) {
+        Admin admin = gash.getWorkingLocation().getCurrentConnection().getAdmin();
         List<TreeElement<Space>> tree = new ArrayList<TreeElement<Space>>();
         for (GridServiceContainer container : admin.getGridServiceContainers()) {
             for (ProcessingUnitInstance processingUnitInstance : container.getProcessingUnitInstances()) {
@@ -84,11 +95,6 @@ public class TreeCommand implements Command {
 
     @Override
     public String description() {
-        return "Show a tree of spaces.";
-    }
-
-    @Override
-    public boolean connectionRequired() {
-        return true;
+        return "Show a tree of spaces";
     }
 }

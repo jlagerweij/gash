@@ -1,26 +1,28 @@
 package net.lagerwey.gash.command;
 
 import net.lagerwey.gash.Gash;
+import net.lagerwey.gash.GashState;
 import net.lagerwey.gash.Utils;
-import org.openspaces.admin.Admin;
 
 /**
  * Exits the application.
  */
-public class ExitCommand implements Command {
-    private Gash gash;
+public class ExitCommand extends AbstractCommand {
 
     /**
-     * Constructs an ExitCommand with a Gash instance.
+     * Constructs this command with a Gash instance.
      *
      * @param gash Gash instance.
      */
-    public ExitCommand(Gash gash) {
-        this.gash = gash;
+    public ExitCommand(final Gash gash) {
+        super(gash);
     }
 
     @Override
-    public void perform(Admin admin, String command, String arguments) {
+    public void perform(String command, String arguments) {
+        if (gash.getStateManager().contains(GashState.CONNECTED)) {
+            gash.getConnectionManager().closeAll();
+        }
         Utils.println("Exiting...");
         gash.setExitApplication(true);
     }
@@ -28,10 +30,5 @@ public class ExitCommand implements Command {
     @Override
     public String description() {
         return "Exits the application";
-    }
-
-    @Override
-    public boolean connectionRequired() {
-        return gash.isConnected();
     }
 }

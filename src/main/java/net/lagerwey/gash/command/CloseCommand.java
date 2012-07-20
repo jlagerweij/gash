@@ -1,36 +1,29 @@
 package net.lagerwey.gash.command;
 
 import net.lagerwey.gash.Gash;
-import org.openspaces.admin.Admin;
 
 /**
  * Closes the connection.
-*/
-public class CloseCommand implements Command {
-
-    private Gash gash;
+ */
+public class CloseCommand extends AbstractConnectedCommand {
 
     /**
-     * Constructs the CloseCommand with a Gash instance.
+     * Constructs this command with a Gash instance.
+     *
      * @param gash Gash instance.
      */
-    public CloseCommand(Gash gash) {
-        this.gash = gash;
+    public CloseCommand(final Gash gash) {
+        super(gash);
     }
 
     @Override
-    public void perform(Admin admin, String command, String arguments) {
-        gash.setLookuplocators(arguments);
-        gash.disconnect();
+    public void perform(String command, String arguments) {
+        gash.getConnectionManager().close(gash.getWorkingLocation().getCurrentConnection());
+        gash.getWorkingLocation().changeConnection(null);
     }
 
     @Override
     public String description() {
-        return "Closes the connection to the grid.";
-    }
-
-    @Override
-    public boolean connectionRequired() {
-        return true;
+        return "Closes the current connection";
     }
 }

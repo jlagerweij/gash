@@ -2,7 +2,8 @@ package net.lagerwey.gash.command;
 
 import com.j_spaces.core.IJSpace;
 import com.j_spaces.jdbc.driver.GConnection;
-import net.lagerwey.gash.CurrentWorkingLocation;
+import net.lagerwey.gash.Gash;
+import net.lagerwey.gash.GashConnection;
 import net.lagerwey.gash.PrettyPrintUtils;
 import net.lagerwey.gash.Utils;
 import org.openspaces.admin.Admin;
@@ -30,35 +31,42 @@ import static net.lagerwey.gash.Utils.sortProcessingUnits;
 /**
  * List directory contents. A directory can be a space, partitionIds, objecttypes or objects.
  */
-public class ListCommand implements Command {
-
-    private CurrentWorkingLocation currentWorkingLocation;
+public class ListCommand extends AbstractCommand {
 
     /**
-     * Constructs a ListCommand with a ChangeDirectoryCommand which holds the current directory.
+     * Constructs this command with a Gash instance.
      *
-     * @param currentWorkingLocation Current directory.
+     * @param gash Gash instance.
      */
-    public ListCommand(CurrentWorkingLocation currentWorkingLocation) {
-        this.currentWorkingLocation = currentWorkingLocation;
+    public ListCommand(final Gash gash) {
+        super(gash);
     }
 
     @Override
-    public void perform(Admin admin, String command, String arguments) {
-        if (currentWorkingLocation.getCurrentMountpoint() == null) {
-            Utils.println("logs/");
-            Utils.println("spaces/");
+    public void perform(String command, String arguments) {
+        if (!gash.getWorkingLocation().hasConnection()) {
+            if (gash.getConnectionManager().hasConnections()) {
+                gash.getConnectionManager().listConnections();
+            } else {
+                Utils.error("No available connections");
+            }
         } else {
-            if ("logs".equals(currentWorkingLocation.getCurrentMountpoint())) {
-                listMountpointLogs(admin);
-            } else if ("spaces".equals(currentWorkingLocation.getCurrentMountpoint())) {
-                listMountpointSpaces(admin, arguments);
+            if (!gash.getWorkingLocation().hasMountpoint()) {
+                Utils.println("logs/");
+                Utils.println("spaces/");
+            } else {
+                Admin admin = gash.getWorkingLocation().getCurrentConnection().getAdmin();
+                if ("logs".equals(gash.getWorkingLocation().getCurrentMountpoint())) {
+                    listMountpointLogs(admin);
+                } else if ("spaces".equals(gash.getWorkingLocation().getCurrentMountpoint())) {
+                    listMountpointSpaces(admin, arguments);
+                }
             }
         }
     }
 
     private void listMountpointLogs(Admin admin) {
-        if (currentWorkingLocation.isInLogs()) {
+        if (gash.getWorkingLocation().isInLogs()) {
             Machine[] machines = admin.getMachines().getMachines();
             Arrays.sort(machines, new Comparator<Machine>() {
                 @Override
@@ -72,9 +80,9 @@ public class ListCommand implements Command {
             Utils.println("GSA");
             Utils.println("GSM");
             Utils.println("GSC");
-        } else if (currentWorkingLocation.isInHostname()) {
-            Machine machine = admin.getMachines().getMachineByHostName(currentWorkingLocation.getLogLocation()
-                    .getHostname());
+        } else if (gash.getWorkingLocation().isInHostname()) {
+            Machine machine = admin.getMachines().getMachineByHostName(gash.getWorkingLocation().getLogLocation()
+                                                                               .getHostname());
             if (machine != null) {
                 for (GridServiceAgent gridServiceAgent : machine.getGridServiceAgents()) {
                     Utils.println("GSA");
@@ -90,13 +98,13 @@ public class ListCommand implements Command {
     }
 
     private void listMountpointSpaces(Admin admin, String arguments) {
-        if (currentWorkingLocation.isInGrid()) {
+        if (gash.getWorkingLocation().isInGrid()) {
             listSpaces(admin);
-        } else if (currentWorkingLocation.isInSpace()) {
+        } else if (gash.getWorkingLocation().isInSpace()) {
             listPartitions(admin);
-        } else if (currentWorkingLocation.isInPartition()) {
+        } else if (gash.getWorkingLocation().isInPartition()) {
             listObjectTypes(admin, arguments);
-        } else if (currentWorkingLocation.isInObject()) {
+        } else if (gash.getWorkingLocation().isInObject()) {
             listObjects(admin, arguments);
         }
     }
@@ -108,8 +116,8 @@ public class ListCommand implements Command {
      */
     private void listSpaces(Admin admin) {
         Utils.println("total %s processing units, %s spaces.",
-                admin.getProcessingUnits().getSize(),
-                admin.getSpaces().getNames().size());
+                      admin.getProcessingUnits().getSize(),
+                      admin.getSpaces().getNames().size());
         Utils.println("%-35s %-35s %-20s %-10s", "SpaceName", "PU Name", "PU Status", "Type");
 
         ProcessingUnits processingUnits = admin.getProcessingUnits();
@@ -145,7 +153,7 @@ public class ListCommand implements Command {
      * @param admin GigaSpaces Admin object.
      */
     private void listPartitions(Admin admin) {
-        Space spaceByName = admin.getSpaces().getSpaceByName(currentWorkingLocation.getSpaceName());
+        Space spaceByName = admin.getSpaces().getSpaceByName(gash.getWorkingLocation().getSpaceName());
         SpacePartition[] partitions = spaceByName.getPartitions();
         Arrays.sort(partitions, new Comparator<SpacePartition>() {
             @Override
@@ -209,8 +217,8 @@ public class ListCommand implements Command {
      */
     private void listObjects(Admin admin, String arguments) {
         String query = String.format("SELECT * FROM %s %s",
-                currentWorkingLocation.getObjectType(),
-                arguments == null ? "WHERE rownum < 10" : arguments);
+                                     gash.getWorkingLocation().getObjectType(),
+                                     arguments == null ? "WHERE rownum < 10" : arguments);
         int objects = executeQuery(admin, query);
         Utils.println("%s objects.", objects);
     }
@@ -226,15 +234,15 @@ public class ListCommand implements Command {
         int nrOfObjects = 0;
         try {
             Utils.println("Query: " + query);
-            Space spaceByName = admin.getSpaces().getSpaceByName(currentWorkingLocation.getSpaceName());
-            SpacePartition partition = spaceByName.getPartition(Integer.parseInt(currentWorkingLocation
-                    .getPartitionId()));
+            Space spaceByName = admin.getSpaces().getSpaceByName(gash.getWorkingLocation().getSpaceName());
+            SpacePartition partition = spaceByName.getPartition(Integer.parseInt(gash.getWorkingLocation()
+                                                                                         .getPartitionId()));
             IJSpace space = partition.getPrimary().getGigaSpace().getSpace();
             GConnection conn = GConnection.getInstance(space);
             conn.setUseSingleSpace(true);
             Statement st = conn.createStatement();
             ResultSet rs = st.executeQuery(query);
-            nrOfObjects = PrettyPrintUtils.prettyPrintResultSet(currentWorkingLocation, space, conn, rs);
+            nrOfObjects = PrettyPrintUtils.prettyPrintResultSet(gash.getWorkingLocation(), space, conn, rs);
             rs.close();
             st.close();
             conn.close();
@@ -248,14 +256,13 @@ public class ListCommand implements Command {
         return nrOfObjects;
     }
 
-
     @Override
     public String description() {
-        return "Lists spaces.";
+        return "Lists the items in the current working location";
     }
 
     @Override
-    public boolean connectionRequired() {
-        return true;
+    public void showHelp() {
+        Utils.println("Usage: ls");
     }
 }

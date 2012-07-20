@@ -13,7 +13,7 @@ import java.util.List;
 /**
  */
 public class PrettyPrintUtils {
-    public static int prettyPrintResultSet(CurrentWorkingLocation currentWorkingLocation, IJSpace space, GConnection conn, ResultSet rs) throws SQLException {
+    public static int prettyPrintResultSet(WorkingLocation currentWorkingLocation, IJSpace space, GConnection conn, ResultSet rs) throws SQLException {
         List<List<String>> data = new ArrayList<List<String>>();
         List<Integer> lengthPerColumn = new ArrayList<Integer>();
         int nrOfObjects = 0;

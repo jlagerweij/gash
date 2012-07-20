@@ -1,7 +1,7 @@
 package net.lagerwey.gash.command;
 
 import com.j_spaces.jdbc.driver.GConnection;
-import net.lagerwey.gash.CurrentWorkingLocation;
+import net.lagerwey.gash.Gash;
 import net.lagerwey.gash.Utils;
 import org.openspaces.admin.Admin;
 import org.openspaces.core.GigaSpace;
@@ -15,33 +15,33 @@ import java.util.Map;
 /**
  * SQLCommand performs a SQL command in the GigaSpaces grid.
  */
-public class SQLCommand implements Command {
-
-    private CurrentWorkingLocation currentWorkingLocation;
+public class SQLCommand extends AbstractWorkingLocationCommand {
 
     /**
-     * Constructs a SQLCommand with a ChangeDirectoryCommand for the current working directory.
+     * Constructs this command with a Gash instance.
      *
-     * @param currentWorkingLocation Current working directory location.
+     * @param gash Gash instance.
      */
-    public SQLCommand(CurrentWorkingLocation currentWorkingLocation) {
-        this.currentWorkingLocation = currentWorkingLocation;
+    public SQLCommand(final Gash gash) {
+        super(gash);
     }
 
     @Override
-    public void perform(Admin admin, String command, String arguments) {
+    public void perform(String command, String arguments) {
 
-        if (!StringUtils.hasText(currentWorkingLocation.getSpaceName())) {
+        if (!StringUtils.hasText(gash.getWorkingLocation().getSpaceName())) {
             Utils.println("No space selected.");
             return;
         }
 
+        Admin admin = gash.getWorkingLocation().getCurrentConnection().getAdmin();
         GigaSpace gigaSpace;
-        if (StringUtils.hasText(currentWorkingLocation.getPartitionId())) {
-            gigaSpace = admin.getSpaces().getSpaceByName(currentWorkingLocation.getSpaceName()).getPartition(Integer.parseInt(
-                    currentWorkingLocation.getPartitionId())).getPrimary().getGigaSpace();
+        if (StringUtils.hasText(gash.getWorkingLocation().getPartitionId())) {
+            gigaSpace = admin.getSpaces().getSpaceByName(gash.getWorkingLocation().getSpaceName())
+                    .getPartition(Integer.parseInt(
+                            gash.getWorkingLocation().getPartitionId())).getPrimary().getGigaSpace();
         } else {
-            gigaSpace = admin.getSpaces().getSpaceByName(currentWorkingLocation.getSpaceName()).getGigaSpace();
+            gigaSpace = admin.getSpaces().getSpaceByName(gash.getWorkingLocation().getSpaceName()).getGigaSpace();
         }
         if (gigaSpace == null) {
             Utils.println("Found no GigaSpaces space.");
@@ -77,10 +77,10 @@ public class SQLCommand implements Command {
                 sb.append("\t");
             }
             Utils.println("%s",
-                    "__________________________________________________________________________________");
+                          "__________________________________________________________________________________");
             Utils.println("%s", sb.toString());
             Utils.println("%s",
-                    "----------------------------------------------------------------------------------");
+                          "----------------------------------------------------------------------------------");
 
             while (rs.next()) {
                 sb.setLength(0);
@@ -100,12 +100,6 @@ public class SQLCommand implements Command {
 
     @Override
     public String description() {
-        return "Selects from a space.";
+        return "Executes queries on a space";
     }
-
-    @Override
-    public boolean connectionRequired() {
-        return true;
-    }
-
 }

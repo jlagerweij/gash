@@ -2,6 +2,7 @@ package net.lagerwey.gash.command;
 
 import com.gigaspaces.async.AsyncFuture;
 import com.gigaspaces.cluster.activeelection.SpaceMode;
+import net.lagerwey.gash.Gash;
 import net.lagerwey.gash.Utils;
 import net.lagerwey.gash.tasks.DistributedServiceExporterTask;
 import org.openspaces.admin.Admin;
@@ -13,10 +14,20 @@ import java.util.concurrent.ExecutionException;
 /**
  * Detects exported services in the GigaSpaces grid.
  */
-public class ServicesCommand implements Command {
+public class ServicesCommand extends AbstractConnectedCommand {
+
+    /**
+     * Constructs this command with a Gash instance.
+     *
+     * @param gash Gash instance.
+     */
+    public ServicesCommand(final Gash gash) {
+        super(gash);
+    }
 
     @Override
-    public void perform(Admin admin, String command, String arguments) {
+    public void perform(String command, String arguments) {
+        Admin admin = gash.getWorkingLocation().getCurrentConnection().getAdmin();
         try {
             for (Space space : admin.getSpaces()) {
 //                if (space.getName().equals("ServicesLayerSpace")) {
@@ -49,13 +60,6 @@ public class ServicesCommand implements Command {
 
     @Override
     public String description() {
-        return "Show all services from all spaces.";
+        return "Show all services from all spaces";
     }
-
-    @Override
-    public boolean connectionRequired() {
-        return true;
-    }
-
-
 }

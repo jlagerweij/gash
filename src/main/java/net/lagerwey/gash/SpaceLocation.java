@@ -17,7 +17,7 @@ import java.util.Map;
  */
 public class SpaceLocation {
 
-    private CurrentWorkingLocation currentWorkingLocation;
+    private WorkingLocation currentWorkingLocation;
 
     private List<SpaceLocation> locations = new ArrayList<SpaceLocation>();
 
@@ -25,7 +25,7 @@ public class SpaceLocation {
     private String partitionId;
     private String objectType;
 
-    public SpaceLocation(CurrentWorkingLocation currentWorkingLocation) {
+    public SpaceLocation(WorkingLocation currentWorkingLocation) {
         this.currentWorkingLocation = currentWorkingLocation;
     }
 
@@ -64,8 +64,9 @@ public class SpaceLocation {
             }
         } else if (directory.equals("/")) {
             currentWorkingLocation.clear();
+            currentWorkingLocation.changeConnection(null);
         } else if (currentWorkingLocation.getCurrentMountpoint() == null) {
-            currentWorkingLocation.changeLocation(admin, directory);
+            currentWorkingLocation.changeLocation(directory);
         } else {
             if (!spaceLocation.hasSpaceName()) {
                 if (admin.getSpaces().getSpaceByName(directory) != null) {

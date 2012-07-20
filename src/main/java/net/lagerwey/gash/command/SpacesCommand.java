@@ -1,6 +1,7 @@
 package net.lagerwey.gash.command;
 
 import com.gigaspaces.cluster.activeelection.SpaceMode;
+import net.lagerwey.gash.Gash;
 import net.lagerwey.gash.Utils;
 import org.openspaces.admin.Admin;
 import org.openspaces.admin.gsc.GridServiceContainer;
@@ -16,19 +17,29 @@ import java.util.Comparator;
 /**
  * Displays available spaces in grid service containers.
  */
-public class SpacesCommand implements Command {
+public class SpacesCommand extends AbstractConnectedCommand {
 
     private static final char VERTICAL = '|';
     private static final char HORIZONTAL = '-';
     private static final String BEGIN_ELBOW = new String(new char[]{'+', HORIZONTAL, HORIZONTAL});
     private static final String BEGIN_VERTICAL_AND_RIGHT = new String(new char[]{'+', HORIZONTAL, HORIZONTAL});
 
+    /**
+     * Constructs this command with a Gash instance.
+     *
+     * @param gash Gash instance.
+     */
+    public SpacesCommand(final Gash gash) {
+        super(gash);
+    }
+
     @Override
-    public void perform(Admin admin, String command, String arguments) {
+    public void perform(String command, String arguments) {
         boolean showAll = false;
         if ("-a".equals(arguments)) {
             showAll = true;
         }
+        Admin admin = gash.getWorkingLocation().getCurrentConnection().getAdmin();
         for (Machine machine : admin.getMachines()) {
             Utils.println("%s", machine.getHostName());
             GridServiceContainer[] containers = machine.getGridServiceContainers().getContainers();
@@ -63,17 +74,17 @@ public class SpacesCommand implements Command {
                 }
                 if (showAll) {
                     Utils.println("%s GSC-%s [pid %s] uid[%s] %s",
-                            containerTree,
-                            i,
-                            container.getVirtualMachine().getDetails().getPid(),
-                            container.getUid(),
-                            zones);
+                                  containerTree,
+                                  i,
+                                  container.getVirtualMachine().getDetails().getPid(),
+                                  container.getUid(),
+                                  zones);
                 } else {
                     Utils.println("%s GSC-%s [pid %s] %s",
-                            containerTree,
-                            i,
-                            container.getVirtualMachine().getDetails().getPid(),
-                            zones);
+                                  containerTree,
+                                  i,
+                                  container.getVirtualMachine().getDetails().getPid(),
+                                  zones);
                 }
 
                 int processingUnitCount = 0;
@@ -96,17 +107,17 @@ public class SpacesCommand implements Command {
 
                     if (showAll) {
                         Utils.println("%s   %s %s %s id[%s]",
-                                containerVertical,
-                                processingUnitTree,
-                                puNameAndClusterInfo,
-                                primary,
-                                processingUnitInstance.getUid());
+                                      containerVertical,
+                                      processingUnitTree,
+                                      puNameAndClusterInfo,
+                                      primary,
+                                      processingUnitInstance.getUid());
                     } else {
                         Utils.println("%s   %s %s %s",
-                                containerVertical,
-                                processingUnitTree,
-                                puNameAndClusterInfo,
-                                primary);
+                                      containerVertical,
+                                      processingUnitTree,
+                                      puNameAndClusterInfo,
+                                      primary);
                     }
 
                     if (processingUnitInstance.isJee()) {
@@ -117,21 +128,21 @@ public class SpacesCommand implements Command {
                                 jeeTree = BEGIN_VERTICAL_AND_RIGHT;
                             }
                             Utils.println("%s   %s   %s http://%s:%s%s",
-                                    containerVertical,
-                                    processingUnitVertical,
-                                    jeeTree,
-                                    jeeDetails.getHost(),
-                                    jeeDetails.getPort(),
-                                    jeeDetails.getContextPath());
+                                          containerVertical,
+                                          processingUnitVertical,
+                                          jeeTree,
+                                          jeeDetails.getHost(),
+                                          jeeDetails.getPort(),
+                                          jeeDetails.getContextPath());
                         }
                         if (jeeDetails.getSslPort() > 0) {
                             Utils.println("%s   %s   %s https://%s:%s%s",
-                                    containerVertical,
-                                    processingUnitVertical,
-                                    BEGIN_ELBOW,
-                                    jeeDetails.getHost(),
-                                    jeeDetails.getSslPort(),
-                                    jeeDetails.getContextPath());
+                                          containerVertical,
+                                          processingUnitVertical,
+                                          BEGIN_ELBOW,
+                                          jeeDetails.getHost(),
+                                          jeeDetails.getSslPort(),
+                                          jeeDetails.getContextPath());
                         }
                     } else {
                         for (SpaceServiceDetails details : processingUnitInstance.getSpaceDetails()) {
@@ -139,12 +150,12 @@ public class SpacesCommand implements Command {
                             if (details.getSpaceType().equals(SpaceType.REMOTE)) {
                                 if (showAll) {
                                     Utils.println("%s   %s   %s %s [%s] %s",
-                                            containerVertical,
-                                            processingUnitVertical,
-                                            BEGIN_ELBOW,
-                                            details.getId(),
-                                            details.getLongDescription(),
-                                            "Remote");
+                                                  containerVertical,
+                                                  processingUnitVertical,
+                                                  BEGIN_ELBOW,
+                                                  details.getId(),
+                                                  details.getLongDescription(),
+                                                  "Remote");
                                 }
                             } else {
                                 String instancePrimary = (
@@ -152,19 +163,19 @@ public class SpacesCommand implements Command {
                                                 .equals(SpaceMode.PRIMARY) ? " " : " Backup");
                                 if (showAll) {
                                     Utils.println("%s   %s   %s %s %s serviceId[%s]",
-                                            containerVertical,
-                                            processingUnitVertical,
-                                            BEGIN_ELBOW,
-                                            details.getId(),
-                                            instancePrimary,
-                                            details.getServiceID());
+                                                  containerVertical,
+                                                  processingUnitVertical,
+                                                  BEGIN_ELBOW,
+                                                  details.getId(),
+                                                  instancePrimary,
+                                                  details.getServiceID());
                                 } else {
                                     Utils.println("%s   %s   %s %s %s",
-                                            containerVertical,
-                                            processingUnitVertical,
-                                            BEGIN_ELBOW,
-                                            details.getId(),
-                                            instancePrimary);
+                                                  containerVertical,
+                                                  processingUnitVertical,
+                                                  BEGIN_ELBOW,
+                                                  details.getId(),
+                                                  instancePrimary);
                                 }
                             }
                         }
@@ -176,12 +187,7 @@ public class SpacesCommand implements Command {
 
     @Override
     public String description() {
-        return "Lists all Spaces.";
-    }
-
-    @Override
-    public boolean connectionRequired() {
-        return true;
+        return "Lists all spaces";
     }
 
     /**

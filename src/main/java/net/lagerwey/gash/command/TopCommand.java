@@ -1,6 +1,7 @@
 package net.lagerwey.gash.command;
 
 import com.gigaspaces.cluster.activeelection.SpaceMode;
+import net.lagerwey.gash.Gash;
 import net.lagerwey.gash.Utils;
 import org.openspaces.admin.Admin;
 import org.openspaces.admin.gsa.GridServiceAgent;
@@ -20,10 +21,19 @@ import java.util.List;
 /**
  * Shows a dashboard of the systems health.
  */
-public class TopCommand implements Command {
+public class TopCommand extends AbstractConnectedCommand {
+
+    /**
+     * Constructs this command with a Gash instance.
+     *
+     * @param gash Gash instance.
+     */
+    public TopCommand(final Gash gash) {
+        super(gash);
+    }
 
     @Override
-    public void perform(Admin admin, String command, String arguments) {
+    public void perform(String command, String arguments) {
         boolean showDetails = false;
         if ("-a".equals(arguments)) {
             showDetails = true;
@@ -32,6 +42,7 @@ public class TopCommand implements Command {
 
 //        boolean exitDashboard = false;
 //        while (!exitDashboard) {
+        Admin admin = gash.getWorkingLocation().getCurrentConnection().getAdmin();
         Machine[] machines = admin.getMachines().getMachines();
         for (Machine machine : machines) {
             String hostName = machine.getHostName();
@@ -57,12 +68,12 @@ public class TopCommand implements Command {
         }
 
         Utils.println("%s Hosts  %s GSA    %s GSM    %s GSC    %s LUS    %s Zones",
-                admin.getMachines().getMachines().length,
-                admin.getMachines().getSize(),
-                admin.getGridServiceManagers().getSize(),
-                admin.getGridServiceContainers().getSize(),
-                admin.getLookupServices().getSize(),
-                admin.getZones().getZones().length);
+                      admin.getMachines().getMachines().length,
+                      admin.getMachines().getSize(),
+                      admin.getGridServiceManagers().getSize(),
+                      admin.getGridServiceContainers().getSize(),
+                      admin.getLookupServices().getSize(),
+                      admin.getZones().getZones().length);
 
         int web = 0;
         int statefull = 0;
@@ -133,13 +144,13 @@ public class TopCommand implements Command {
             double memoryUsedPerc = topEntry.getMemoryUsedPerc();
             StringBuilder progressbar = createProgressBar(memoryUsedPerc);
             Utils.println("%-15s  %5.2f%% usage  Mem: %4.0f MB total, %4.0f MB used, %4.0f MB free, %5.2f %%  %s",
-                    topEntry.getName(),
-                    topEntry.getCpuPerc() * 100,
-                    topEntry.getMaxMemory(),
-                    topEntry.getMemoryUsed(),
-                    topEntry.getFreeMemory(),
-                    topEntry.getMemoryUsedPerc(),
-                    progressbar.toString());
+                          topEntry.getName(),
+                          topEntry.getCpuPerc() * 100,
+                          topEntry.getMaxMemory(),
+                          topEntry.getMemoryUsed(),
+                          topEntry.getFreeMemory(),
+                          topEntry.getMemoryUsedPerc(),
+                          progressbar.toString());
         }
 
 
@@ -181,12 +192,7 @@ public class TopCommand implements Command {
 
     @Override
     public String description() {
-        return "Provides a dynamic real-time view of a running system.";
-    }
-
-    @Override
-    public boolean connectionRequired() {
-        return true;
+        return "Provides a dynamic real-time view of a running system";
     }
 
     /**
