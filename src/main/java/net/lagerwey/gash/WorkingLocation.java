@@ -43,7 +43,7 @@ public class WorkingLocation {
         if (location.startsWith("/")) {
             clear();
             changeConnection(null);
-            stripLocationItem(location, "");
+            location = stripLocationItem(location, "");
         }
         String[] directories = location.split("/");
         if (directories.length > 0) {

@@ -33,8 +33,7 @@ public class MountCommand extends AbstractCommand {
                 if (!gash.getConnectionManager().isConnected(lookupGroups)) {
                     GashConnection connection = gash.getConnectionManager().open(lookupGroups, null);
 
-                    gash.getWorkingLocation().changeConnection(connection);
-                    gash.getWorkingLocation().changeLocation("spaces");
+                    gash.getWorkingLocation().changeLocation(String.format("/%s/spaces", connection.getKey()));
 
                     Utils.println("Connected to [%s].", connection.getConnectionString());
                 } else {
