@@ -2,6 +2,7 @@ apply plugin: 'java'
 apply plugin: 'maven'
 apply plugin: com.smokejumperit.gradle.OneJarPlugin
 
+
 group = 'net.lagerwey'
 version = '1.3-SNAPSHOT'
 
