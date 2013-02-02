@@ -1,5 +1,6 @@
 apply plugin: 'java'
-apply from: "https://launchpad.net/gradle-release/trunk/latest/+download/apply.groovy"
+apply from: 'http://tellurianring.com/projects/gradle-plugins/gradle-release/apply.groovy'
+
 
 ext {
     sourceCompatibility = JavaVersion.VERSION_1_6   /* define the valid syntax level for source files */
