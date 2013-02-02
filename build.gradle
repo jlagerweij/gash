@@ -47,3 +47,47 @@ oneJar.dependsOn jar
 artifacts {
     archives oneJar
 }
+
+task uploadToGoogle(type: UploadToGoogle) {
+    archive = file("target/mockito-${version}.zip")
+    projectname = 'gash'
+    summary = "Gash version ${version}"
+}
+class UploadToGoogle extends DefaultTask {
+
+    @InputFile File archive
+
+    void assertUploadPossible() {
+        def googleUser = project.hasProperty('googleUser')
+        def googlePwd = project.hasProperty('googlePwd')
+
+        assert googleUser && googlePwd : """Google upload not possible - googleUser or googlePwd property not provided.
+Pass -PgoogleUser=someone -PgooglePwd=secret via command line"""
+
+        assert archive.exists() : "" +
+                "Google upload not possible - no binaries to upload. Please run 'gradlew build' first."
+    }
+
+    @TaskAction
+    void upload() {
+        project.ant {
+            //declare ant task
+            taskdef(name:"gcupload", classname:"net.bluecow.googlecode.ant.GoogleCodeUploadTask") {
+                classpath {
+                    fileset(dir: 'lib/build', includes: 'ant-googlecode-*.jar')
+                }
+            }
+
+            //acquire the user/password (usually supplied via command line)
+            def googleUser = project.getProperty('googleUser')
+            def googlePwd  = project.getProperty('googlePwd')
+
+            //upload zip
+            logger.lifecycle "Uploading $archive ..."
+
+            gcupload username:googleUser, password:googlePwd, projectname:projectname,
+                filename:archive, targetfilename:archive.name, summary:summary,
+                labels:"Featured"
+        }
+    }
+}
