@@ -1,6 +1,4 @@
 apply plugin: 'java'
-apply plugin: 'maven'
-apply plugin: 'oneJar'
 apply from: "https://launchpad.net/gradle-release/trunk/latest/+download/apply.groovy"
 
 ext {
@@ -16,78 +14,74 @@ buildscript {
         maven {
             url uri('lib')
         }
-        add(new org.apache.ivy.plugins.resolver.URLResolver()) {
-     			name = 'GitHub'
-     			addArtifactPattern 'http://cloud.github.com/downloads/[organisation]/[module]/[module]-[revision].[ext]'
-     		}
     }
-}
-
-buildscript {
-	dependencies {
-		classpath 'curious-attempt-bunny:gradle-onejar:0.1-SNAPSHOT'
-	}
 }
 repositories {
     mavenCentral()
     mavenRepo url: "lib"
+}
+configurations {
+    provided
+    onejar
+    googlecode
 }
 dependencies {
     compile("com.gigaspaces:gs-openspaces:8.0.6") {
         exclude(module: 'openjpa-all')
     }
     compile "jline:jline:1.0"
+    onejar 'com.simontuffs:one-jar-ant-task:0.97'
+    googlecode 'ant-googlecode:ant-googlecode:0.0.3'
 }
 
-task oneJar(type: OneJar) {
-	mainClass = 'net.lagerwey.gash.Gash'
-}
-oneJar.dependsOn jar
+jar { 
+    manifest { 
+        attributes 'Main-Class': 'net.lagerwey.gash.Gash' 
+    } 
+} 
 
-artifacts {
-    archives oneJar
-}
+task oneJar { 
+    ext.destFile = file("${jar.destinationDir.path}/${project.archivesBaseName}-onejar-${version}.jar")
+    dependsOn jar 
+    inputs.file file("${jar.destinationDir.path}/${project.archivesBaseName}-${version}.jar")
+    outputs.file destFile
+    doLast { 
+        ant.taskdef(name: "onejar", classname: "com.simontuffs.onejar.ant.OneJarTask", classpath: configurations.onejar.asPath, onerror: "report") 
+        ant.onejar(destfile: destFile) { 
+            ant.main(jar: project.tasks.jar.archivePath) 
+            ant.lib() { 
+            configurations.runtime.findAll { !configurations.provided.contains(it) }.each { f -> 
+                ant.fileset(file: f.path) 
+            } 
+            } 
+        } 
+    } 
+} 
 
-task uploadToGoogle(type: UploadToGoogle) {
-    archive = file("target/mockito-${version}.zip")
-    projectname = 'gash'
-    summary = "Gash version ${version}"
-}
-class UploadToGoogle extends DefaultTask {
+createReleaseTag.dependsOn uploadArchives
 
-    @InputFile File archive
-
-    void assertUploadPossible() {
-        def googleUser = project.hasProperty('googleUser')
-        def googlePwd = project.hasProperty('googlePwd')
+uploadArchives {
+    dependsOn oneJar
+    ext.archive = file("build/libs/gash-onejar-${version}.jar")
+    ext.projectname = 'gash'
+    ext.summary = "Gash version ${version}"
+    
+    doLast {
+        //acquire the user/password (usually supplied via command line)
+        def googleUser = project.getProperty('googleUser')
+        def googlePwd  = project.getProperty('googlePwd')
 
         assert googleUser && googlePwd : """Google upload not possible - googleUser or googlePwd property not provided.
-Pass -PgoogleUser=someone -PgooglePwd=secret via command line"""
+        Pass -PgoogleUser=someone -PgooglePwd=secret via command line"""
 
+        println summary
         assert archive.exists() : "" +
                 "Google upload not possible - no binaries to upload. Please run 'gradlew build' first."
-    }
 
-    @TaskAction
-    void upload() {
-        project.ant {
-            //declare ant task
-            taskdef(name:"gcupload", classname:"net.bluecow.googlecode.ant.GoogleCodeUploadTask") {
-                classpath {
-                    fileset(dir: 'lib/build', includes: 'ant-googlecode-*.jar')
-                }
-            }
-
-            //acquire the user/password (usually supplied via command line)
-            def googleUser = project.getProperty('googleUser')
-            def googlePwd  = project.getProperty('googlePwd')
-
-            //upload zip
-            logger.lifecycle "Uploading $archive ..."
-
-            gcupload username:googleUser, password:googlePwd, projectname:projectname,
+        logger.lifecycle "Uploading $archive ..."
+        ant.taskdef(name:"gcupload", classname:"net.bluecow.googlecode.ant.GoogleCodeUploadTask", classpath: project.configurations.googlecode.asPath)
+        ant.gcupload username:googleUser, password:googlePwd, projectname:projectname,
                 filename:archive, targetfilename:archive.name, summary:summary,
                 labels:"Featured"
-        }
     }
 }

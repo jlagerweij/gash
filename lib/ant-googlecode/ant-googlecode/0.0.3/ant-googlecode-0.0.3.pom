@@ -1,0 +1,7 @@
+<project>
+  <modelVersion>4.0.0</modelVersion>
+  <artifactId>ant-googlecode</artifactId>
+  <groupId>ant-googlecode</groupId>
+  <version>0.0.3</version>
+  <packaging>jar</packaging>
+</project>
