@@ -34,6 +34,10 @@ dependencies {
     googlecode 'ant-googlecode:ant-googlecode:0.0.3'
 }
 
+task wrapper(type: Wrapper) {
+    gradleVersion = '1.4'
+}
+
 jar { 
     manifest { 
         attributes 'Main-Class': 'net.lagerwey.gash.Gash' 
