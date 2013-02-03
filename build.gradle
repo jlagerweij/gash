@@ -36,7 +36,7 @@ jar {
 } 
 
 task oneJar { 
-    ext.destFile = file("${jar.destinationDir.path}/${project.archivesBaseName}-onejar-${version}.jar")
+    ext.destFile = file("${jar.destinationDir.path}/${project.archivesBaseName}-${version}-one-jar.jar")
     dependsOn jar 
     inputs.file file("${jar.destinationDir.path}/${project.archivesBaseName}-${version}.jar")
     outputs.file destFile
@@ -58,9 +58,9 @@ createReleaseTag.dependsOn uploadArchives
 uploadArchives {
     dependsOn oneJar
     ext.versionWithoutSnapshot = version - '-SNAPSHOT'
-    ext.archive = file("build/libs/gash-onejar-${versionWithoutSnapshot}.jar")
+    ext.archive = file("build/libs/gash-${versionWithoutSnapshot}-one-jar.jar")
     ext.projectname = 'gash'
-    ext.summary = "Gash version ${version}"
+    ext.summary = "GigaSpaces Advanced Shell bundle ${version}"
     
     doLast {
         //acquire the user/password (usually supplied via command line)
