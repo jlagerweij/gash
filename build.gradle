@@ -7,16 +7,6 @@ ext {
     targetCompatibility = JavaVersion.VERSION_1_6   /* define binary compatiblity version */
 }
 
-configurations.compile.transitive = true
-
-// http://cloud.github.com/downloads/curious-attempt-bunny/gradle-onejar/gradle-onejar-0.1-SNAPSHOT.jar
-buildscript {
-    repositories {
-        maven {
-            url uri('lib')
-        }
-    }
-}
 repositories {
     mavenCentral()
     mavenRepo url: "lib"
@@ -67,7 +57,8 @@ createReleaseTag.dependsOn uploadArchives
 
 uploadArchives {
     dependsOn oneJar
-    ext.archive = file("build/libs/gash-onejar-${version}.jar")
+    ext.versionWithoutSnapshot = version - '-SNAPSHOT'
+    ext.archive = file("build/libs/gash-onejar-${versionWithoutSnapshot}.jar")
     ext.projectname = 'gash'
     ext.summary = "Gash version ${version}"
     
