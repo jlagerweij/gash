@@ -61,7 +61,7 @@ uploadArchives {
     ext.archive = file("build/libs/gash-${version}-one-jar.jar")
     ext.targetfilename = "gash-${versionWithoutSnapshot}-one-jar.jar"
     ext.projectname = 'gash'
-    ext.summary = "GigaSpaces Advanced Shell bundle ${version}"
+    ext.summary = "GigaSpaces Advanced Shell bundle ${versionWithoutSnapshot}"
     
     doLast {
         //acquire the user/password (usually supplied via command line)
