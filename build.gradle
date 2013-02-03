@@ -58,7 +58,8 @@ createReleaseTag.dependsOn uploadArchives
 uploadArchives {
     dependsOn oneJar
     ext.versionWithoutSnapshot = version - '-SNAPSHOT'
-    ext.archive = file("build/libs/gash-${versionWithoutSnapshot}-one-jar.jar")
+    ext.archive = file("build/libs/gash-${version}-one-jar.jar")
+    ext.targetfilename = "gash-${versionWithoutSnapshot}-one-jar.jar"
     ext.projectname = 'gash'
     ext.summary = "GigaSpaces Advanced Shell bundle ${version}"
     
@@ -77,7 +78,7 @@ uploadArchives {
         logger.lifecycle "Uploading $archive ..."
         ant.taskdef(name:"gcupload", classname:"net.bluecow.googlecode.ant.GoogleCodeUploadTask", classpath: project.configurations.googlecode.asPath)
         ant.gcupload username:googleUser, password:googlePwd, projectname:projectname,
-                filename:archive, targetfilename:archive.name, summary:summary,
+                filename:archive, targetfilename:targetfilename, summary:summary,
                 labels:"Featured"
     }
 }
