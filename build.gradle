@@ -20,7 +20,7 @@ dependencies {
     compile("com.gigaspaces:gs-openspaces:8.0.6") {
         exclude(module: 'openjpa-all')
     }
-    compile "jline:jline:1.0"
+    compile "jline:jline:2.11"
     onejar 'com.simontuffs:one-jar-ant-task:0.97'
     googlecode 'ant-googlecode:ant-googlecode:0.0.3'
 }

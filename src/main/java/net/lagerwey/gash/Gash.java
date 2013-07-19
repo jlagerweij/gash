@@ -1,23 +1,9 @@
 package net.lagerwey.gash;
 
-import jline.ConsoleReader;
-import jline.SimpleCompletor;
-import net.lagerwey.gash.command.ChangeDirectoryCommand;
-import net.lagerwey.gash.command.CloseCommand;
-import net.lagerwey.gash.command.Command;
-import net.lagerwey.gash.command.ExitCommand;
-import net.lagerwey.gash.command.HelpCommand;
-import net.lagerwey.gash.command.ListCommand;
-import net.lagerwey.gash.command.MountCommand;
-import net.lagerwey.gash.command.SQLCommand;
-import net.lagerwey.gash.command.SelectCommand;
-import net.lagerwey.gash.command.ServicesCommand;
-import net.lagerwey.gash.command.SetCommand;
-import net.lagerwey.gash.command.SpacesCommand;
-import net.lagerwey.gash.command.TailCommand;
-import net.lagerwey.gash.command.TopCommand;
-import net.lagerwey.gash.command.TreeCommand;
-import net.lagerwey.gash.command.UnitCommand;
+import jline.TerminalFactory;
+import jline.console.ConsoleReader;
+import jline.console.completer.StringsCompleter;
+import net.lagerwey.gash.command.*;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -105,12 +91,29 @@ public class Gash {
             }
         }
 
-        exitApplication = false;
-        while (!exitApplication) {
+        try {
+            ConsoleReader reader = new ConsoleReader();
+            reader.addCompleter(new StringsCompleter(commands.keySet()));
 
-            String cmd = readCommandWithJLine();
+            exitApplication = false;
+            while (!exitApplication) {
 
-            executeCommand(cmd);
+                String prompt = currentWorkingLocation.determinePrompt();
+                reader.setPrompt(prompt);
+
+                String cmd = reader.readLine();
+
+                executeCommand(cmd);
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                TerminalFactory.get().restore();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
 
         System.exit(0);
@@ -143,26 +146,6 @@ public class Gash {
             Utils.error("Unknown command '%s'", cmd);
             commands.get("help").perform(cmd, arguments);
         }
-    }
-
-    private String readCommandWithJLine() {
-//        List<Completor> completors = new LinkedList<Completor>();
-
-        try {
-            ConsoleReader reader = new ConsoleReader();
-//            reader.addCompletor (new ArgumentCompletor(completors));
-
-            for (String s : commands.keySet()) {
-                reader.addCompletor(new SimpleCompletor(s));
-            }
-
-            String prompt = currentWorkingLocation.determinePrompt();
-
-            return reader.readLine(prompt);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return null;
     }
 
     public void setExitApplication(boolean b) {
